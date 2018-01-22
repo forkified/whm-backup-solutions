@@ -1,5 +1,10 @@
 <?php
 
+function check_license()
+{
+	// TODO: Check Valid License
+}
+
 function record_log($error, $log)
 {
 	// TODO: Record Log
@@ -20,6 +25,14 @@ if (file_exists("config.php"))
 	} else
 	{
 		record_log("error", "config.php &amp; secure-config.php are missing. Ensure a configuration file exists.");
+	}
+
+	/**
+	 * Check License is Valid.
+	 */
+	if (!$check_license = check_license($license_key))
+	{
+		record_log("error", "License Error:" . $check_license);
 	}
 
 ?>
