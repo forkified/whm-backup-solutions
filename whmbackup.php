@@ -26,7 +26,7 @@
  * @link        https://whmbackup.solutions
  * @filename    whmbackup.php
  */
-$version = "0.1";
+$version = "0.2";
 $directory = realpath(__dir__ ) . DIRECTORY_SEPARATOR;
 
 // Include Functions file.
