@@ -13,7 +13,7 @@
  *                  Curl
  * 
  * Instructions:    For instructions on how to configure and run this script see README.txt
- *                  or visit https://whmbackup.solutions/installation/
+ *                  or visit https://whmbackup.solutions/documentation/
  *  
  * LICENSE: This source file is subject to GNU GPL-3.0-or-later
  * that is available through the world-wide-web at the following URI:
@@ -26,7 +26,7 @@
  * @link        https://whmbackup.solutions
  * @filename    whmbackup.php
  */
-$version = "0.1";
+$version = "0.2";
 $directory = realpath(__dir__ ) . DIRECTORY_SEPARATOR;
 
 // Include Functions file.
@@ -93,7 +93,7 @@ if (file_exists($directory . "config.php")) {
 foreach ($config_variables as $var) {
     if (!isset($config[$var]))
         record_log("system", "Variable &#36;config[&#34;" . $var .
-            "&#34;] Missing From Config. Please Generate A New Configuration File Using config.new or secure-config.new.", true);
+            "&#34;] Missing From Config. Please Generate A New Configuration File Using config.php.new", true);
 }
 
 // Variables

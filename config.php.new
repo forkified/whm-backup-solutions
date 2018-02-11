@@ -32,7 +32,7 @@ $config['obfuscate_config'] = FALSE;
 // 0 - Disable Checking For Updates.
 // 1 - Notify of Major Update.
 // 2 - Notify of Major & Minor Updates. 
-$config['check_version'] = '';
+$config['check_version'] = '2';
 
 // $config['whm_hostname']
 // This is the hostname or ip address of the cPanel server your reseller is hosted on.

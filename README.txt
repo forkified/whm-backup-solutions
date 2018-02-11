@@ -19,7 +19,7 @@ Script Files
 Installation
 ===============================================================
 A quick summary of installation instructions is listed below.
-For more detailed instructions visit https://whmbackup.solutions/installation/
+For more detailed instructions visit https://whmbackup.solutions/documentation/
 
 1. Download the latest version from https://whmbackup.solutions.
 
@@ -38,7 +38,7 @@ For more detailed instructions visit https://whmbackup.solutions/installation/
 
 		(Please note if you have register_argv_argc disabled
 		on your server this will not work. A work around is
-		available at https://whmbackup.solutions/installation/)
+		available at https://whmbackup.solutions/documentation/)
 
 	- Run Account Backup
 		This cronjob should run every 5, 10 or 15 minutes.

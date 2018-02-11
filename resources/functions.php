@@ -13,7 +13,7 @@
  *                  Curl
  * 
  * Instructions:    For instructions on how to configure and run this script see README.txt
- *                  or visit https://whmbackup.solutions/installation/
+ *                  or visit https://whmbackup.solutions/documentation/
  *  
  * LICENSE: This source file is subject to GNU GPL-3.0-or-later
  * that is available through the world-wide-web at the following URI:
