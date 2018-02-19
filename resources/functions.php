@@ -238,6 +238,7 @@ function generate_account_list()
 {
 	global $config, $xmlapi;
 	$accounts_to_backup = array();
+    $accounts_to_exclude = array();
 	$valid_backup_types = array(
 		"1" => "",
 		"2" => "user",
