@@ -205,15 +205,20 @@ if (($generate == false) && ($retrieve_status["status"] == "1"))
 // Generate Variable Not Set, Backup Already Started, All Accounts Backed Up, Send Log File in Email.
 if (($generate == false) && ($retrieve_status["status"] == "2"))
 {
-	$email_log = email_log();
-	if ($email_log["error"] == "0")
+	if (!empty($config['backup_email']))
 	{
-		record_log("backup", "Log File Successfully Sent To " . $config["backup_email"]);
-	} else
-	{
-		record_log("backup", $email_log["response"], true);
+		$email_log = email_log();
+		if ($email_log["error"] == "0")
+		{
+			record_log("backup", "Log File Successfully Sent To " . $config["backup_email"]);
+		} else
+		{
+			record_log("backup", $email_log["response"], true);
+		}
+	}else{
+	   record_log("backup", "Log File Completed.");
 	}
-	update_status(array(), "");
+	$update_status = update_status(array(), "");
 }
 
 ?>
