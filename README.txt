@@ -6,6 +6,7 @@ WHM Backup Solutions - https://whmbackup.solutions
 Script Files
 ===============================================================
 	whmbackup.php
+	ftp_retention.php
 	config.php.new
 	secure-config.php.new
 	LICENSE.txt
@@ -47,6 +48,11 @@ For more detailed instructions visit https://whmbackup.solutions/documentation/
 		between runs should be increased to reduce server load.
 
 		Command: php -q /home/user/whmbackupsolutions/whmbackup.php
+
+	- Run FTP Backup Retention
+		This cronjob should run shortly after every backup run.
+
+		Command: php -q /home/user/whmbackupsolutions/ftp_retention.php
 
 ===============================================================
 

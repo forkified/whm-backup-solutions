@@ -26,7 +26,6 @@
  * @link        https://whmbackup.solutions
  * @filename    whmbackup.php
  */
-$version = "0.3";
 $directory = realpath(__dir__ ) . DIRECTORY_SEPARATOR;
 
 // Include Functions file.
@@ -118,7 +117,7 @@ if ((PHP_SAPI == 'cli') && (isset($argv)))
 // Retrieve Backup Status
 $retrieve_status = retrieve_status();
 if ($retrieve_status["error"] == "1")
-	record_log("error", $retrieve_status["response"], true);
+	record_log("system", $retrieve_status["response"], true);
 
 $log_file = $retrieve_status["log_file"];
 
@@ -134,7 +133,7 @@ try
 			$xmlapi->hash_auth($config["whm_username"], $config["whm_auth_key"]);
 		} else
 		{
-			record_log("system", "Invalid Authentication Type, Set &0024;config[\"whm_auth\"] to either password or hash.", true);
+			record_log("system", "Invalid Authentication Type, Set &#36;config[\"whm_auth\"] to either password or hash.", true);
 		}
 
 		$xmlapi->set_output('json');
@@ -151,29 +150,29 @@ catch (exception $e)
 if ((($generate == true) && ($retrieve_status["status"] == "1") && ($force == true)) ||
 	(($generate == true) && ($retrieve_status["status"] != "1")))
 {
-
+	$update_status = update_status(array(), "");
 	$generate_account_list = generate_account_list();
 	$log_file = $generate_account_list["log_file"];
 	if ($generate_account_list["error"] == "1")
-		record_log("backup", "(Generation) ERROR: " . $generate_account_list["response"], true);
+		record_log("note", "(Generation) ERROR: " . $generate_account_list["response"], true);
 
 	if ($config["check_version"] != '0')
 	{
 		$check_version = check_version();
 		if ($check_version["error"])
-			record_log("backup", "UPDATE CHECK ERROR: " . $check_version["response"]);
+			record_log("note", "UPDATE CHECK ERROR: " . $check_version["response"]);
 		if (($config["check_version"] == $check_version["version_status"]) || (($config["check_version"] ==
 			"2") && ($check_version["version_status"] == "1")))
 		{
-			record_log("backup", "UPDATE CHECK: " . $check_version["response"]);
+			record_log("note", "UPDATE CHECK: " . $check_version["response"]);
 		}
 	}
 
 
 	$save_status = update_status($generate_account_list["account_list"], $generate_account_list["log_file"]);
 	if ($save_status["error"] == "1")
-		record_log("backup", "(Generation) ERROR: " . $save_status["response"], true);
-	record_log("backup", "Accounts To Be Backed Up: " . implode(", ", $generate_account_list["account_list"]), true);
+		record_log("note", "(Generation) ERROR: " . $save_status["response"], true);
+	record_log("note", "Accounts To Be Backed Up: " . implode(", ", $generate_account_list["account_list"]), true);
 }
 
 if (($generate == true) && ($retrieve_status["status"] == "1"))
@@ -195,11 +194,14 @@ if (($generate == false) && ($retrieve_status["status"] == "1"))
 	unset($retrieve_status["account_list"][0]);
 	$save_status = update_status(array_values($retrieve_status["account_list"]), $retrieve_status["log_file"]);
 
-	if ($backup_accounts["error"] == "0")
-		record_log("backup", "(" . $account .
+	if (($backup_accounts["error"] == "0") && (!empty($config["backup_email"])))
+		record_log("note", "(" . $account .
 			") Backup Initiated. For More Details See The Backup Email For This Account.", true);
 
-	record_log("backup", "(" . $account . ") ERROR: " . $backup_accounts["response"], true);
+	if (($backup_accounts["error"] == "0") && (empty($config["backup_email"])))
+		record_log("note", "(" . $account . ") Backup Initiated.", true);
+
+	record_log("note", "(" . $account . ") ERROR: " . $backup_accounts["response"], true);
 }
 
 // Generate Variable Not Set, Backup Already Started, All Accounts Backed Up, Send Log File in Email.
@@ -207,16 +209,18 @@ if (($generate == false) && ($retrieve_status["status"] == "2"))
 {
 	if (!empty($config['backup_email']))
 	{
-		$email_log = email_log();
+		$email_log = email_log("Reseller Backup Log (WHM Backup Solutions)",
+			"The backup of \"" . $config['whm_username'] . "\" has been completed. The log of backup initiation is available below.\r\n");
 		if ($email_log["error"] == "0")
 		{
-			record_log("backup", "Log File Successfully Sent To " . $config["backup_email"]);
+			record_log("note", "Log File Successfully Sent To " . $config["backup_email"]);
 		} else
 		{
-			record_log("backup", $email_log["response"], true);
+			record_log("note", $email_log["response"], true);
 		}
-	}else{
-	   record_log("backup", "Log File Completed.");
+	} else
+	{
+		record_log("note", "Log File Completed.");
 	}
 	$update_status = update_status(array(), "");
 }

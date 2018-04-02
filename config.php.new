@@ -118,4 +118,13 @@ $config['backup_pass'] = '';
 // Please note this folder path must exist.
 $config['backup_rdir'] = '';
 
+// ======================================
+// BACKUP RETENTION (ftp_retention.php)
+// ======================================
+// Configuration fields past this point will be ignored unless $config['backup_destination'] is set to ftp and 
+// ftp_retention.php is ran.
+
+// $config['max_backups_per_account']
+// This will set the number of backups to keep for each account found on the FTP server.
+$config['max_backups_per_account'] = '';
 ?>

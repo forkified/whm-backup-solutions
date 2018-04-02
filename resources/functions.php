@@ -26,6 +26,8 @@
  * @link        https://whmbackup.solutions
  * @filename    functions.php
  */
+ 
+$version = "0.4";
 
 /**
  * @name        check_version
@@ -81,7 +83,7 @@ function check_version()
  * @global      $log_file       (string)    Filename of log (Read Only).
  * @global      $version        (string)    Version of Script (Read Only).
  * @global      $config         (array)     Config Values As Set in Config File (Read Only).
- * @param       $type           (string)    Can be set to either note or error.
+ * @param       $type           (string)    Can be set to either note or system.
  * @param       $log_message    (string)    Message to write to log.
  * @param       $stop           (boolean)   If set to true, will stop script running.
  * @return      (array) error - Boolean 1 or 0,
@@ -97,7 +99,7 @@ function record_log($type, $log_message, $stop = false)
 
 	// Record all logs in system.log unless its related to a backup.
 	$file_name = $log_directory . "system.log";
-	if ($type == "backup")
+	if ($type == "note")
 		$file_name = $log_directory . $log_file;
 
 	if ((!isset($config["date_format"])) || (empty($config["date_format"])))
@@ -238,7 +240,7 @@ function generate_account_list()
 {
 	global $config, $xmlapi;
 	$accounts_to_backup = array();
-    $accounts_to_exclude = array();
+	$accounts_to_exclude = array();
 	$valid_backup_types = array(
 		"1" => "",
 		"2" => "user",
@@ -254,6 +256,11 @@ function generate_account_list()
 	try
 	{
 		$xmlapi_listaccts = json_decode($xmlapi->listaccts(), true);
+		if (isset($xmlapi_listaccts["cpanelresult"]["data"]["reason"]))
+			return array(
+				"error" => "1",
+				"response" => $xmlapi_listaccts["cpanelresult"]["data"]["reason"],
+				"log_file" => "backup-" . date("YmdHis", time()) . ".log");
 		foreach ($xmlapi_listaccts["acct"] as $acct)
 		{
 			if (empty($backup_type))
@@ -322,7 +329,8 @@ function backup_accounts($account_list)
 
 	$result = json_decode($xmlapi->api1_query($account_list[0], 'Fileman',
 		'fullbackup', $api_args), true);
-
+	if (isset($result["cpanelresult"]["data"]["reason"]))
+		return array("error" => "1", "response" => $result["cpanelresult"]["data"]["reason"]);
 	if ($result["data"]["result"] == "0")
 		return array("error" => "1", "response" => $result["data"]["reason"]);
 
@@ -333,11 +341,12 @@ function backup_accounts($account_list)
  * @name        email_log
  * @description Sends the specified log file to the email address.
  * @global      $log_file       (string)   Filename of log.
- * @param       $email_address  (string)   The email address to send the log file to.
+ * @param       $subject        (string)   The subject of the email being sent.
+ * @param       $message        (string)   The message of the email being sent.
  * @return      (array) error - Boolean 1 or 0,
  *                      response - Error Message (if applicable). 
  */
-function email_log()
+function email_log($subject, $message)
 {
 	global $log_file, $config, $directory;
 	$log_directory = $directory . "logs" . DIRECTORY_SEPARATOR;
@@ -358,12 +367,11 @@ function email_log()
 				".).");
 	fclose($handle); //close file
 
-	$message = "The backup of \"" . $config['whm_username'] . "\" has been completed. The log of backup initiation is available below.\r\n";
 	$message = $message . $contents; // Stop lines being longer than 70 characters.
 
 
 	if ($mail = mail($config["backup_email"],
-		'Reseller Backup Log (WHM Backup Solutions)', $message, "From: " . $config["backup_email"] .
+		$subject, $message, "From: " . $config["backup_email"] .
 		"\r\n") == false)
 		return array("error" => "1", "response" =>
 				"An Error Occured While Trying To Send The Email.");
