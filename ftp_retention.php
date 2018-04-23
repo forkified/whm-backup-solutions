@@ -203,9 +203,9 @@ try
 	if (!empty($config['backup_email']))
 	{
 		$email_log = email_log("Backup Retention Log (WHM Backup Solutions)",
-			"The backup retention script has been run on " . $config['backup_hostname'] .
+			"The FTP backup retention script has been run on " . $config['backup_hostname'] .
 			":" . $config['backup_port'] . $config['backup_rdir'] .
-			". The log of backup is available below.\r\n");
+			". The log is available below.\r\n");
 		if ($email_log["error"] == "0")
 		{
 			record_log("note", "Log File Successfully Sent To " . $config["backup_email"]);
