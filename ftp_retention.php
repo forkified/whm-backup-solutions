@@ -26,17 +26,24 @@
  * @filename    ftp_retention.php
  */
 
+// Set Log File Name
 $log_file = "ftpretention-" . date("YmdHis", time()) . ".log";
+
+// Get Current Directory
 $directory = realpath(__dir__ ) . DIRECTORY_SEPARATOR;
 
 // Include Functions file.
 include ($directory . "resources" . DIRECTORY_SEPARATOR . "functions.php");
 
-//Check Existance of Config and Include.
+// Check Existance of Config and Include.
 if (file_exists($directory . "config.php")) {
     include ($directory . "config.php");
+
+    // Check If Config Needs Obsfuscating
     if ($config["obfuscate_config"] == true) {
+        // Obfuscate $config Array
         $obfuscated_config = bin2hex(gzdeflate(json_encode($config), 9));
+        // Write Obfuscated $config Array to secure-config.php
         $fp = fopen($directory . "secure-config.php", 'w+');
         if ($fp == false)
             record_log("system", "Unable to open secure-config.php for writing.", true);
@@ -51,6 +58,7 @@ if (file_exists($directory . "config.php")) {
         if ($fc == false)
             record_log("system", "Unable to close secure-config.php for writing.", true);
 
+        // Delete config.php once secure-config.php created.
         if (!unlink($directory . "config.php"))
             record_log("system", "Unable to delete config.php.", true);
     }
@@ -148,38 +156,41 @@ try {
         // Calculate The Number of Backups to Remove.
         $backups_to_remove = $total_backups - $config['max_backups_per_account'];
 
+        // Check If Total Backups For Individual Account Is Greater Than 0.
         if ($total_backups == 0) {
             $record_log_message .= $account . "has no backups stored on the FTP server.";
         } else {
             $record_log_message .= $account . " has the following " . $total_backups .
                 " backup(s) stored on the FTP server:";
 
+            // Check How Many Backups For Individual Account Need Removing.
             if ($backups_to_remove > 0) {
                 $record_log_message .= "\r\nThe " . $backups_to_remove .
                     " oldest backup(s) for " . $account . " will be removed.";
+
+                // Loop Through Each Backup
+                foreach ($bkey as $backup_timestamp => $backup_file) {
+
+                    // Remove x Number of Oldest Backups For Account
+                    if ($backups_to_remove > 0) {
+                        $backups_to_remove = $backups_to_remove - 1;
+                        // Remove Backup From Array.
+                        unset($bkey[$backup_timestamp]);
+                        // Delete Backup From FTP Server.
+                        if (!ftp_delete($conn_id, $config['backup_rdir'] . DIRECTORY_SEPARATOR . $backup_file)) {
+                            $record_log_message .= "\r\nUnable To Remove " . $config['backup_rdir'] .
+                                DIRECTORY_SEPARATOR . $backup_file . " From FTP Server.";
+                        } else {
+                            $record_log_message .= "\r\n- " . $config['backup_rdir'] . DIRECTORY_SEPARATOR .
+                                $backup_file . " has been removed.";
+                        }
+
+                    } else {
+                        break;
+                    }
+                }
             } else {
                 $record_log_message .= "\r\nNo backups need removing for this account.";
-            }
-
-            // Loop Through Each Backup
-            foreach ($bkey as $backup_timestamp => $backup_file) {
-
-                // Remove x Number of Oldest Backups For Account
-                if ($backups_to_remove > 0) {
-                    $backups_to_remove = $backups_to_remove - 1;
-                    unset($bkey[$backup_timestamp]);
-
-                    if (!ftp_delete($conn_id, $config['backup_rdir'] . DIRECTORY_SEPARATOR . $backup_file)) {
-                        $record_log_message .= "\r\nUnable To Remove " . $config['backup_rdir'] .
-                            DIRECTORY_SEPARATOR . $backup_file . " From FTP Server.";
-                    } else {
-                        $record_log_message .= "\r\n- " . $config['backup_rdir'] . DIRECTORY_SEPARATOR .
-                            $backup_file . " has been removed.";
-                    }
-
-                } else {
-                    break;
-                }
             }
         }
         record_log("note", $record_log_message);
