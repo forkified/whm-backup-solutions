@@ -165,9 +165,6 @@ try
 			$record_log_message .= $account . " has the following " . $total_backups .
 				" backup(s) stored on the FTP server:";
 
-			/**foreach ($bkey as $backup_timestamp => $backup_file)
-			$record_log_message .= "\n  - " . $backup_file;*/
-
 			if ($backups_to_remove > 0)
 			{
 				$record_log_message .= "\r\nThe " . $backups_to_remove . " oldest backup(s) for " .
@@ -187,12 +184,12 @@ try
 					$backups_to_remove = $backups_to_remove - 1;
 					unset($bkey[$backup_timestamp]);
 
-					if (!ftp_delete($conn_id, $config['backup_rdir'] . $backup_file))
+					if (!ftp_delete($conn_id, $config['backup_rdir'] . DIRECTORY_SEPARATOR . $backup_file))
 					{
-						$record_log_message .= "\r\nUnable To Remove " . $config['backup_rdir'] . $backup_file . " From FTP Server.";
+						$record_log_message .= "\r\nUnable To Remove " . $config['backup_rdir'] . DIRECTORY_SEPARATOR . $backup_file . " From FTP Server.";
 					} else
 					{
-						$record_log_message .= "\r\n- " . $backup_file . " has been removed.";
+						$record_log_message .= "\r\n- " . $config['backup_rdir'] . DIRECTORY_SEPARATOR . $backup_file . " has been removed.";
 					}
 
 				} else
