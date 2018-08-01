@@ -27,11 +27,11 @@
  * @filename    functions.php
  */
  
-$version = "0.4";
+$version = "0.6";
 
 /**
  * @name        check_version
- * @description Checks against https://whmbackup.solutions/check_version/ if the script is running the latest version.
+ * @description Checks against https://checkversion.whmbackup.solutions if the script is running the latest version.
  * @global      $version        (string)    Version of Script (Read Only).
  * @return      (array) error - Boolean 1 or 0,
  *                      response - Error Message (This may also contain a response if the script is out of date).
@@ -43,7 +43,7 @@ function check_version()
 {
 	global $version;
 	$curl = curl_init();
-	curl_setopt($curl, CURLOPT_URL, "https://whmbackup.solutions/check_version/");
+	curl_setopt($curl, CURLOPT_URL, "https://checkversion.whmbackup.solutions/"); // https://whmbackup.solutions/check_version/ to be deprecated in January 2019.
 	curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
 	curl_setopt($curl, CURLOPT_HEADER, false);
 	curl_setopt($curl, CURLOPT_TIMEOUT, 5);
