@@ -103,7 +103,7 @@ if ($config["max_backups_per_account"] < 1)
         "&#36;config[&#34;max_backups_per_account&#34;] must be set to greater than 0.", true);
 
 // Ensure Backup Destination is set to FTP.
-if ($config["backup_destination"] != "ftp")
+if (($config["backup_destination"] != "ftp") || ($config["backup_destination"] != "passiveftp"))
     record_log("system",
         "You can only view/remove backups hosted on an FTP server. Config file is set to " .
         $config["backup_destination"] . ".", true);
@@ -120,6 +120,10 @@ try {
     // Login to FTP Server
     if (!$login_result = ftp_login($conn_id, $config['backup_user'], $config['backup_pass']))
         record_log("system", "Unable to login to FTP Server.", true);
+
+    // Enable Passive Mode?
+    if (($config["backup_destination"] == "passiveftp") && (!$passive_mode = ftp_pasv($conn_id, true)))
+        record_log("system", "Unable to login to connect to FTP server using Passive Mode.", true);
 
     // Retrieve Directory Listing
     if (!$contents = ftp_nlist($conn_id, $config['backup_rdir']))
