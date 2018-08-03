@@ -352,18 +352,18 @@ function email_log($subject, $message)
 	$log_directory = $directory . "logs" . DIRECTORY_SEPARATOR;
 	$file_name = $log_directory . $log_file;
 	if (empty($log_file))
-		return array("error" => "1", "response" => "Log File Not Specified.");
+		return array("error" => "1", "response" => "Unable To Send Notification Email, Log File Not Specified.");
 
 	if (!file_exists($file_name))
-		return array("error" => "1", "response" => "Log File Does Not Exist (" . $file_name .
-				".).");
+		return array("error" => "1", "response" => "Unable To Send Notification Email, Log File Does Not Exist (" . $file_name .
+				").");
 	$handle = fopen($file_name, "r"); //open file in read mode
 	if (!$handle)
-		return array("error" => "1", "response" => "Unable To Open Log File (" . $file_name .
+		return array("error" => "1", "response" => "Unable To Send Notification Email, Unable To Open Log File (" . $file_name .
 				".).");
 	$contents = fread($handle, filesize($file_name)); //read file
 	if (!$contents)
-		return array("error" => "1", "response" => "Unable To Read Log File (" . $file_name .
+		return array("error" => "1", "response" => "Unable To Send Notification Email, Unable To Read Log File (" . $file_name .
 				".).");
 	fclose($handle); //close file
 
@@ -374,7 +374,7 @@ function email_log($subject, $message)
 		$subject, $message, "From: " . $config["backup_email"] .
 		"\r\n") == false)
 		return array("error" => "1", "response" =>
-				"An Error Occured While Trying To Send The Email.");
+				"Unable To Send Notification Email, An Error Occured While Trying To Send The Email.");
 
 	return array("error" => "0", "response" => "");
 }
