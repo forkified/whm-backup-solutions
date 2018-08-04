@@ -211,13 +211,13 @@ try
 						// Remove Backup From Array.
 						unset($bkey[$backup_timestamp]);
 						// Delete Backup From FTP Server.
-						if (!ftp_delete($conn_id, $config['backup_rdir'] . DIRECTORY_SEPARATOR . $backup_file))
+						if (!ftp_delete($conn_id, $config['backup_rdir'] . "/" . $backup_file))
 						{
-							$record_log_message .= "\r\nUnable To Remove " . $config['backup_rdir'] . DIRECTORY_SEPARATOR . $backup_file .
+							$record_log_message .= "\r\nUnable To Remove " . $config['backup_rdir'] . "/" . $backup_file .
 								" From FTP Server.";
 						} else
 						{
-							$record_log_message .= "\r\n- " . $config['backup_rdir'] . DIRECTORY_SEPARATOR . $backup_file .
+							$record_log_message .= "\r\n- " . $config['backup_rdir'] . "/" . $backup_file .
 								" has been removed.";
 						}
 
