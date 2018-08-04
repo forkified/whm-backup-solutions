@@ -27,7 +27,7 @@ $config['obfuscate_config'] = FALSE;
 
 // $config['check_version']
 // To ensure you are running the latest version of this script every time you generate a new backup 
-// you can enable checks back to https://whmbackup.solutions/check_version/.
+// you can enable checks back to https://check_version.whmbackup.solutions/.
 // There are 3 levels of update notifications you can set the configuration variable to.
 // 0 - Disable Checking For Updates.
 // 1 - Notify of Major Update.
@@ -121,7 +121,7 @@ $config['backup_rdir'] = '';
 // ======================================
 // BACKUP RETENTION (ftp_retention.php)
 // ======================================
-// Configuration fields past this point will be ignored unless $config['backup_destination'] is set to ftp and 
+// Configuration fields past this point will be ignored unless $config['backup_destination'] is set to ftp or passiveftp and 
 // ftp_retention.php is ran.
 
 // $config['max_backups_per_account']
