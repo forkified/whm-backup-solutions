@@ -27,11 +27,11 @@
  * @filename    functions.php
  */
  
-$version = "0.5";
+$version = "0.6";
 
 /**
  * @name        check_version
- * @description Checks against https://whmbackup.solutions/check_version/ if the script is running the latest version.
+ * @description Checks against https://checkversion.whmbackup.solutions if the script is running the latest version.
  * @global      $version        (string)    Version of Script (Read Only).
  * @return      (array) error - Boolean 1 or 0,
  *                      response - Error Message (This may also contain a response if the script is out of date).
@@ -43,7 +43,7 @@ function check_version()
 {
 	global $version;
 	$curl = curl_init();
-	curl_setopt($curl, CURLOPT_URL, "https://whmbackup.solutions/check_version/");
+	curl_setopt($curl, CURLOPT_URL, "https://checkversion.whmbackup.solutions/"); // https://whmbackup.solutions/check_version/ to be deprecated in January 2019.
 	curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
 	curl_setopt($curl, CURLOPT_HEADER, false);
 	curl_setopt($curl, CURLOPT_TIMEOUT, 5);
@@ -352,18 +352,18 @@ function email_log($subject, $message)
 	$log_directory = $directory . "logs" . DIRECTORY_SEPARATOR;
 	$file_name = $log_directory . $log_file;
 	if (empty($log_file))
-		return array("error" => "1", "response" => "Log File Not Specified.");
+		return array("error" => "1", "response" => "Unable To Send Notification Email, Log File Not Specified.");
 
 	if (!file_exists($file_name))
-		return array("error" => "1", "response" => "Log File Does Not Exist (" . $file_name .
-				".).");
+		return array("error" => "1", "response" => "Unable To Send Notification Email, Log File Does Not Exist (" . $file_name .
+				").");
 	$handle = fopen($file_name, "r"); //open file in read mode
 	if (!$handle)
-		return array("error" => "1", "response" => "Unable To Open Log File (" . $file_name .
+		return array("error" => "1", "response" => "Unable To Send Notification Email, Unable To Open Log File (" . $file_name .
 				".).");
 	$contents = fread($handle, filesize($file_name)); //read file
 	if (!$contents)
-		return array("error" => "1", "response" => "Unable To Read Log File (" . $file_name .
+		return array("error" => "1", "response" => "Unable To Send Notification Email, Unable To Read Log File (" . $file_name .
 				".).");
 	fclose($handle); //close file
 
@@ -374,7 +374,7 @@ function email_log($subject, $message)
 		$subject, $message, "From: " . $config["backup_email"] .
 		"\r\n") == false)
 		return array("error" => "1", "response" =>
-				"An Error Occured While Trying To Send The Email.");
+				"Unable To Send Notification Email, An Error Occured While Trying To Send The Email.");
 
 	return array("error" => "0", "response" => "");
 }
