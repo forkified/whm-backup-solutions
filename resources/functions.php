@@ -26,7 +26,7 @@
  * @link        https://whmbackup.solutions
  * @filename    functions.php
  */
- 
+
 $version = "0.7";
 
 /**
@@ -50,13 +50,11 @@ function check_version()
 	$curl_data = curl_exec($curl);
 
 	if ($curl_data === false)
-		return array("error" => "1", "response" => "Curl Error During Update Check: " .
-				curl_error($curl)); // Error During Curl
+		return array("error" => "1", "response" => "Curl Error During Update Check: " . curl_error($curl)); // Error During Curl
 
 	$data = json_decode($curl_data, true);
 	$script_version = explode(".", $version);
-	if (($script_version["0"] == $data["version_major"]) && ($script_version["1"] ==
-		$data["version_minor"]))
+	if (($script_version["0"] == $data["version_major"]) && ($script_version["1"] == $data["version_minor"]))
 		return array(
 			"error" => "0",
 			"response" => "This Script Is Running The Latest Version.",
@@ -118,20 +116,17 @@ WHM Backup Solutions (https://whmbackup.solutions) - V" . $version . "
 	// Open Log File.
 	$fp = fopen($file_name, 'a+');
 	if ($fp == false)
-		return array("error" => "1", "response" => "Unable To Open Log File (" . $file_name .
-				").");
+		return array("error" => "1", "response" => "Unable To Open Log File (" . $file_name . ").");
 
 	// Write to Log File.
 	$fw = fwrite($fp, $message);
 	if ($fw == false)
-		return array("error" => "1", "response" => "Unable To Write to Log File (" . $file_name .
-				").");
+		return array("error" => "1", "response" => "Unable To Write to Log File (" . $file_name . ").");
 
 	// Close Log File.
 	$fc = fclose($fp);
 	if ($fc == false)
-		return array("error" => "1", "response" => "Unable To Close to Log File (" . $file_name .
-				").");
+		return array("error" => "1", "response" => "Unable To Close to Log File (" . $file_name . ").");
 	// Echo $message.
 	echo $output;
 
@@ -160,12 +155,10 @@ function retrieve_status()
 	{
 		$handle = fopen($file_name, "r"); //open file in read mode
 		if (!$handle)
-			return array("error" => "1", "response" => "Unable To Open Status File (" . $file_name .
-					".).");
+			return array("error" => "1", "response" => "Unable To Open Status File (" . $file_name . ".).");
 		$contents = fread($handle, filesize($file_name)); //read file
 		if (!$contents)
-			return array("error" => "1", "response" => "Unable To Read Status File (" . $file_name .
-					".).");
+			return array("error" => "1", "response" => "Unable To Read Status File (" . $file_name . ".).");
 		fclose($handle); //close file
 		$status_contents = json_decode($contents, true); // Decode Status File.
 	}
@@ -209,20 +202,17 @@ function update_status($account_list, $log_file)
 	$file_name = $directory . "temp" . DIRECTORY_SEPARATOR . "status.php";
 	$fp = fopen($file_name, 'w+');
 	if ($fp == false)
-		return array("error" => "1", "response" => "Unable To Open Status File (" . $file_name .
-				").");
+		return array("error" => "1", "response" => "Unable To Open Status File (" . $file_name . ").");
 
 	// Write to Status File.
 	$fw = fwrite($fp, $store);
 	if ($fw == false)
-		return array("error" => "1", "response" => "Unable To Write to Status File (" .
-				$file_name . ").");
+		return array("error" => "1", "response" => "Unable To Write to Status File (" . $file_name . ").");
 
 	// Close Status File.
 	$fc = fclose($fp);
 	if ($fc == false)
-		return array("error" => "1", "response" => "Unable To Close to Status File (" .
-				$file_name . ").");
+		return array("error" => "1", "response" => "Unable To Close to Status File (" . $file_name . ").");
 }
 
 /**
@@ -327,8 +317,7 @@ function backup_accounts($account_list)
 		$config['backup_rdir'] // Remote Path To Storage Directory
 			);
 
-	$result = json_decode($xmlapi->api1_query($account_list[0], 'Fileman',
-		'fullbackup', $api_args), true);
+	$result = json_decode($xmlapi->api1_query($account_list[0], 'Fileman', 'fullbackup', $api_args), true);
 	if (isset($result["cpanelresult"]["data"]["reason"]))
 		return array("error" => "1", "response" => $result["cpanelresult"]["data"]["reason"]);
 	if ($result["data"]["result"] == "0")
@@ -355,28 +344,70 @@ function email_log($subject, $message)
 		return array("error" => "1", "response" => "Unable To Send Notification Email, Log File Not Specified.");
 
 	if (!file_exists($file_name))
-		return array("error" => "1", "response" => "Unable To Send Notification Email, Log File Does Not Exist (" . $file_name .
-				").");
+		return array("error" => "1", "response" => "Unable To Send Notification Email, Log File Does Not Exist (" .
+				$file_name . ").");
 	$handle = fopen($file_name, "r"); //open file in read mode
 	if (!$handle)
-		return array("error" => "1", "response" => "Unable To Send Notification Email, Unable To Open Log File (" . $file_name .
-				".).");
+		return array("error" => "1", "response" => "Unable To Send Notification Email, Unable To Open Log File (" .
+				$file_name . ".).");
 	$contents = fread($handle, filesize($file_name)); //read file
 	if (!$contents)
-		return array("error" => "1", "response" => "Unable To Send Notification Email, Unable To Read Log File (" . $file_name .
-				".).");
+		return array("error" => "1", "response" => "Unable To Send Notification Email, Unable To Read Log File (" .
+				$file_name . ".).");
 	fclose($handle); //close file
 
 	$message = $message . $contents; // Stop lines being longer than 70 characters.
 
 
-	if ($mail = mail($config["backup_email"],
-		$subject, $message, "From: " . $config["backup_email"] .
-		"\r\n") == false)
+	if ($mail = mail($config["backup_email"], $subject, $message, "From: " . $config["backup_email"] . "\r\n") == false)
 		return array("error" => "1", "response" =>
 				"Unable To Send Notification Email, An Error Occured While Trying To Send The Email.");
 
 	return array("error" => "0", "response" => "");
+}
+
+function include_config($config_name=NULL)
+{
+    global $directory;
+	$config_file = "config.php";
+	if ((isset($config_name)) && (!empty($config_name)))
+		$config_file = "config-" . preg_replace('/[^a-zA-Z0-9]/', '', $config_name) . ".php";
+
+	//Check Existance of Config and Include.
+	if (file_exists($directory . $config_file))
+	{
+		include ($directory . $config_file);
+		if ($config["obfuscate_config"] == true)
+		{
+			$obfuscated_config = bin2hex(gzdeflate(json_encode($config), 9));
+			$fp = fopen($directory . "secure-" . $config_file, 'w+');
+			if ($fp == false)
+				record_log("system", "Unable to open secure-" . $config_file . ".php for writing.", true);
+
+			// Write to secure-config.php File.
+			$fw = fwrite($fp, $obfuscated_config);
+			if ($fw == false)
+				record_log("system", "Unable to write to secure-" . $config_file . ".php.", true);
+
+			// Close secure-config.php File.
+			$fc = fclose($fp);
+			if ($fc == false)
+				record_log("system", "Unable to close secure-" . $config_file . ".php for writing.", true);
+
+			if (!unlink($directory . $config_file))
+				record_log("system", "Unable to delete " . $config_file . ".", true);
+		}
+	} else
+		if (file_exists($directory . "secure-" . $config_file))
+		{
+			// De-Obfuscate Secure Config File.
+			$config = json_decode(gzinflate(hex2bin(file_get_contents($directory . "secure-" . $config_file))), true);
+		} else
+		{
+			// No Config Files Found.
+			record_log("system", $config_file . " &#38; secure-" . $config_file . " Are Missing. Ensure A Configuration File Exists.", true);
+		}
+    return $config;
 }
 
 ?>

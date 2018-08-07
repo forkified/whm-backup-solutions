@@ -30,67 +30,51 @@ $directory = realpath(__dir__ ) . DIRECTORY_SEPARATOR;
 
 // Include Functions file.
 include ($directory . "resources" . DIRECTORY_SEPARATOR . "functions.php");
-include ($directory . "resources" . DIRECTORY_SEPARATOR . "xmlapi" .
-	DIRECTORY_SEPARATOR . "xmlapi.php");
+include ($directory . "resources" . DIRECTORY_SEPARATOR . "xmlapi" . DIRECTORY_SEPARATOR . "xmlapi.php");
 
-//Check Existance of Config and Include.
-if (file_exists($directory . "config.php"))
+// Variables
+$generate = NULL;
+$force = NULL;
+$config_name = NULL;
+
+if ((PHP_SAPI == 'cli'))
 {
-	include ($directory . "config.php");
-	if ($config["obfuscate_config"] == true)
+	foreach ($argv as $arg)
 	{
-		$obfuscated_config = bin2hex(gzdeflate(json_encode($config), 9));
-		$fp = fopen($directory . "secure-config.php", 'w+');
-		if ($fp == false)
-			record_log("system", "Unable to open secure-config.php for writing.", true);
-
-		// Write to secure-config.php File.
-		$fw = fwrite($fp, $obfuscated_config);
-		if ($fw == false)
-			record_log("system", "Unable to write to secure-config.php.", true);
-
-		// Close secure-config.php File.
-		$fc = fclose($fp);
-		if ($fc == false)
-			record_log("system", "Unable to close secure-config.php for writing.", true);
-
-		if (!unlink($directory . "config.php"))
-			record_log("system", "Unable to delete config.php.", true);
-	}
-} else
-	if (file_exists($directory . "secure-config.php"))
-	{
-		// De-Obfuscate Secure Config File.
-		$config = json_decode(gzinflate(hex2bin(file_get_contents($directory .
-			"secure-config.php"))), true);
-	} else
-	{
-		// No Config Files Found.
-		record_log("system",
-			"config.php &#38; secure-config.php Are Missing. Ensure A Configuration File Exists.", true);
+		list($arg_x, $arg_y) = explode('=', $arg);
+		$_GET[$arg_x] = $arg_y;
 	}
 
-	// Valid Config Variables
-	$config_variables = array(
-		"date_format",
-		"timezone",
-		"obfuscate_config",
-		"check_version",
-		"whm_hostname",
-		"whm_port",
-		"whm_username",
-		"whm_auth",
-		"whm_auth_key",
-		"type_of_backup",
-		"backup_criteria",
-		"backup_exclusions",
-		"backup_destination",
-		"backup_hostname",
-		"backup_port",
-		"backup_user",
-		"backup_pass",
-		"backup_email",
-		"backup_rdir");
+}
+
+$generate = array_key_exists("generate", $_GET);
+$force = array_key_exists("force", $_GET);
+if (array_key_exists("config", $_GET))
+	$config_name = $_GET["config"];
+
+$config = include_config($config_name);
+
+// Valid Config Variables
+$config_variables = array(
+	"date_format",
+	"timezone",
+	"obfuscate_config",
+	"check_version",
+	"whm_hostname",
+	"whm_port",
+	"whm_username",
+	"whm_auth",
+	"whm_auth_key",
+	"type_of_backup",
+	"backup_criteria",
+	"backup_exclusions",
+	"backup_destination",
+	"backup_hostname",
+	"backup_port",
+	"backup_user",
+	"backup_pass",
+	"backup_email",
+	"backup_rdir");
 
 // Check Config For All Required Variables.
 foreach ($config_variables as $var)
@@ -99,20 +83,6 @@ foreach ($config_variables as $var)
 		record_log("system", "Variable &#36;config[&#34;" . $var .
 			"&#34;] Missing From Config. Please Generate A New Configuration File Using config.php.new", true);
 }
-
-// Variables
-$generate = false;
-$force = false;
-if ((PHP_SAPI == 'cli') && (isset($argv)))
-{
-	$generate = in_array("generate", $argv);
-	$force = in_array("force", $argv);
-} else
-	if (PHP_SAPI != 'cli')
-	{
-		$generate = array_key_exists("generate", $_GET);
-		$force = array_key_exists("force", $_GET);
-	}
 
 // Retrieve Backup Status
 $retrieve_status = retrieve_status();
@@ -147,8 +117,8 @@ catch (exception $e)
 }
 
 // Generate Variable Set, If Backup Already Started & Force Variable Set OR If Backup Not Already Started, Generate Account List
-if ((($generate == true) && ($retrieve_status["status"] == "1") && ($force == true)) ||
-	(($generate == true) && ($retrieve_status["status"] != "1")))
+if ((($generate == true) && ($retrieve_status["status"] == "1") && ($force == true)) || (($generate == true) &&
+	($retrieve_status["status"] != "1")))
 {
 	$update_status = update_status(array(), "");
 	$generate_account_list = generate_account_list();
@@ -161,8 +131,8 @@ if ((($generate == true) && ($retrieve_status["status"] == "1") && ($force == tr
 		$check_version = check_version();
 		if ($check_version["error"])
 			record_log("note", "UPDATE CHECK ERROR: " . $check_version["response"]);
-		if (($config["check_version"] == $check_version["version_status"]) || (($config["check_version"] ==
-			"2") && ($check_version["version_status"] == "1")))
+		if (($config["check_version"] == $check_version["version_status"]) || (($config["check_version"] == "2") &&
+			($check_version["version_status"] == "1")))
 		{
 			record_log("note", "UPDATE CHECK: " . $check_version["response"]);
 		}
@@ -209,8 +179,8 @@ if (($generate == false) && ($retrieve_status["status"] == "2"))
 {
 	if (!empty($config['backup_email']))
 	{
-		$email_log = email_log("Reseller Backup Log (WHM Backup Solutions)",
-			"The backup of \"" . $config['whm_username'] . "\" has been completed. The log of backup initiation is available below.\r\n");
+		$email_log = email_log("Reseller Backup Log (WHM Backup Solutions)", "The backup of \"" . $config['whm_username'] .
+			"\" has been completed. The log of backup initiation is available below.\r\n");
 		if ($email_log["error"] == "0")
 		{
 			record_log("note", "Log File Successfully Sent To " . $config["backup_email"]);
