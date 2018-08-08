@@ -35,6 +35,8 @@ $directory = realpath(__dir__ ) . DIRECTORY_SEPARATOR;
 // Include Functions file.
 include ($directory . "resources" . DIRECTORY_SEPARATOR . "functions.php");
 
+$config_name = NULL;
+
 if (array_key_exists("config", $_GET))
 	$config_name = $_GET["config"];
 
@@ -65,12 +67,7 @@ foreach ($config_variables as $var)
 			"&#34;] Missing From Config. Please Generate A New Configuration File Using config.php.new", true);
 }
 
-/**
- * End Of Config Inclusion
- * =============================
- */
-
-// Ensure Backup Destination is set to FTP.
+// Ensure Maximum Backups To Retain Is Greater Than 0.
 if ($config["max_backups_per_account"] < 1)
 	record_log("system", "&#36;config[&#34;max_backups_per_account&#34;] must be set to greater than 0.", true);
 
