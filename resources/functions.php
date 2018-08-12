@@ -366,6 +366,14 @@ function email_log($subject, $message)
 	return array("error" => "0", "response" => "");
 }
 
+/**
+ * @name        include_config
+ * @description Reads, decrypts and returns $config.
+ * @global      $directory      (string)   Directory of main script.
+ * @param       $config_name    (string)   The name of the config file to include e.g. config-NAME.php or secure-config-NAME.php.
+ * @return      (array) error - Boolean 1 or 0,
+ *                      response - Error Message (if applicable). 
+ */
 function include_config($config_name=NULL)
 {
     global $directory;
@@ -382,20 +390,20 @@ function include_config($config_name=NULL)
 			$obfuscated_config = bin2hex(gzdeflate(json_encode($config), 9));
 			$fp = fopen($directory . "secure-" . $config_file, 'w+');
 			if ($fp == false)
-				record_log("system", "Unable to open secure-" . $config_file . ".php for writing.", true);
+				return array("error" => "1", "response" => "Unable to open secure-" . $config_file . ".php for writing.");
 
 			// Write to secure-config.php File.
 			$fw = fwrite($fp, $obfuscated_config);
 			if ($fw == false)
-				record_log("system", "Unable to write to secure-" . $config_file . ".php.", true);
+                return array("error" => "1", "response" => "Unable to write to secure-" . $config_file . ".php.");
 
 			// Close secure-config.php File.
 			$fc = fclose($fp);
 			if ($fc == false)
-				record_log("system", "Unable to close secure-" . $config_file . ".php for writing.", true);
+                return array("error" => "1", "response" => "Unable to close secure-" . $config_file . ".php for writing.");
 
 			if (!unlink($directory . $config_file))
-				record_log("system", "Unable to delete " . $config_file . ".", true);
+                return array("error" => "1", "response" => "Unable to delete " . $config_file . ".");
 		}
 	} else
 		if (file_exists($directory . "secure-" . $config_file))
@@ -405,9 +413,9 @@ function include_config($config_name=NULL)
 		} else
 		{
 			// No Config Files Found.
-			record_log("system", $config_file . " &#38; secure-" . $config_file . " Are Missing. Ensure A Configuration File Exists.", true);
+            return array("error" => "1", "response" => $config_file . " &#38; secure-" . $config_file . " Are Missing. Ensure A Configuration File Exists.");
 		}
-    return $config;
+    return array("error" => "0", "response" => $config);
 }
 
 ?>

@@ -40,7 +40,10 @@ $config_name = NULL;
 if (array_key_exists("config", $_GET))
 	$config_name = $_GET["config"];
 
-$config = include_config($config_name);
+$include_config = include_config($config_name);
+if ($include_config["error"])
+    record_log("system", $include_config["response"], true);
+$config = $include_config["response"];
 
 	// Valid Config Variables
 	$config_variables = array(
