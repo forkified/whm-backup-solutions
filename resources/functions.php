@@ -307,6 +307,9 @@ function backup_accounts($account_list)
 {
 	global $log_file, $xmlapi, $config;
 
+	if (empty($config['backup_rdir']))
+		$config['backup_rdir'] = "/";
+
 	$api_args = array(
 		$config['backup_destination'], // Destination Type
 		$config['backup_hostname'], // Destination Hostname
@@ -320,6 +323,8 @@ function backup_accounts($account_list)
 	$result = json_decode($xmlapi->api1_query($account_list[0], 'Fileman', 'fullbackup', $api_args), true);
 	if (isset($result["cpanelresult"]["data"]["reason"]))
 		return array("error" => "1", "response" => $result["cpanelresult"]["data"]["reason"]);
+	if ((isset($result["cpanelresult"]["event"]["reason"])) && (!empty($result["cpanelresult"]["event"]["reason"])))
+		return array("error" => "1", "response" => $result["cpanelresult"]["event"]["reason"]);
 	if ($result["data"]["result"] == "0")
 		return array("error" => "1", "response" => $result["data"]["reason"]);
 
@@ -374,9 +379,9 @@ function email_log($subject, $message)
  * @return      (array) error - Boolean 1 or 0,
  *                      response - Error Message (if applicable). 
  */
-function include_config($config_name=NULL)
+function include_config($config_name = null)
 {
-    global $directory;
+	global $directory;
 	$config_file = "config.php";
 	if ((isset($config_name)) && (!empty($config_name)))
 		$config_file = "config-" . preg_replace('/[^a-zA-Z0-9]/', '', $config_name) . ".php";
@@ -395,15 +400,15 @@ function include_config($config_name=NULL)
 			// Write to secure-config.php File.
 			$fw = fwrite($fp, $obfuscated_config);
 			if ($fw == false)
-                return array("error" => "1", "response" => "Unable to write to secure-" . $config_file . ".php.");
+				return array("error" => "1", "response" => "Unable to write to secure-" . $config_file . ".php.");
 
 			// Close secure-config.php File.
 			$fc = fclose($fp);
 			if ($fc == false)
-                return array("error" => "1", "response" => "Unable to close secure-" . $config_file . ".php for writing.");
+				return array("error" => "1", "response" => "Unable to close secure-" . $config_file . ".php for writing.");
 
 			if (!unlink($directory . $config_file))
-                return array("error" => "1", "response" => "Unable to delete " . $config_file . ".");
+				return array("error" => "1", "response" => "Unable to delete " . $config_file . ".");
 		}
 	} else
 		if (file_exists($directory . "secure-" . $config_file))
@@ -413,9 +418,10 @@ function include_config($config_name=NULL)
 		} else
 		{
 			// No Config Files Found.
-            return array("error" => "1", "response" => $config_file . " &#38; secure-" . $config_file . " Are Missing. Ensure A Configuration File Exists.");
+			return array("error" => "1", "response" => $config_file . " &#38; secure-" . $config_file .
+					" Are Missing. Ensure A Configuration File Exists.");
 		}
-    return array("error" => "0", "response" => $config);
+		return array("error" => "0", "response" => $config);
 }
 
 ?>
