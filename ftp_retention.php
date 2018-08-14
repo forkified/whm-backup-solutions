@@ -35,51 +35,15 @@ $directory = realpath(__dir__ ) . DIRECTORY_SEPARATOR;
 // Include Functions file.
 include ($directory . "resources" . DIRECTORY_SEPARATOR . "functions.php");
 
-/**
- * =============================
- * Start Config Inclusion
- */
-// Check Existance of Config and Include.
-if (file_exists($directory . "config.php"))
-{
-	include ($directory . "config.php");
+$config_name = NULL;
 
-	// Check If Config Needs Obsfuscating
-	if ($config["obfuscate_config"] == true)
-	{
+if (array_key_exists("config", $_GET))
+	$config_name = $_GET["config"];
 
-		// Obfuscate $config Array
-		$obfuscated_config = bin2hex(gzdeflate(json_encode($config), 9));
-
-		// Write Obfuscated $config Array to secure-config.php
-		$fp = fopen($directory . "secure-config.php", 'w+');
-		if ($fp == false)
-			record_log("system", "Unable to open secure-config.php for writing.", true);
-
-		// Write to secure-config.php File.
-		$fw = fwrite($fp, $obfuscated_config);
-		if ($fw == false)
-			record_log("system", "Unable to write to secure-config.php.", true);
-
-		// Close secure-config.php File.
-		$fc = fclose($fp);
-		if ($fc == false)
-			record_log("system", "Unable to close secure-config.php for writing.", true);
-
-		// Delete config.php once secure-config.php created.
-		if (!unlink($directory . "config.php"))
-			record_log("system", "Unable to delete config.php.", true);
-	}
-} else
-	if (file_exists($directory . "secure-config.php"))
-	{
-		// De-Obfuscate Secure Config File.
-		$config = json_decode(gzinflate(hex2bin(file_get_contents($directory . "secure-config.php"))), true);
-	} else
-	{
-		// No Config Files Found.
-		record_log("system", "config.php &#38; secure-config.php Are Missing. Ensure A Configuration File Exists.", true);
-	}
+$include_config = include_config($config_name);
+if ($include_config["error"])
+    record_log("system", $include_config["response"], true);
+$config = $include_config["response"];
 
 	// Valid Config Variables
 	$config_variables = array(
@@ -106,12 +70,7 @@ foreach ($config_variables as $var)
 			"&#34;] Missing From Config. Please Generate A New Configuration File Using config.php.new", true);
 }
 
-/**
- * End Of Config Inclusion
- * =============================
- */
-
-// Ensure Backup Destination is set to FTP.
+// Ensure Maximum Backups To Retain Is Greater Than 0.
 if ($config["max_backups_per_account"] < 1)
 	record_log("system", "&#36;config[&#34;max_backups_per_account&#34;] must be set to greater than 0.", true);
 
