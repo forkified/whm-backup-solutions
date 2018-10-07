@@ -86,7 +86,7 @@ foreach ($config_variables as $var) {
 }
 
 // Retrieve Backup Status
-$retrieve_status = retrieve_status();
+$retrieve_status = retrieve_status($config_name);
 if ($retrieve_status["error"] == "1")
     record_log("system", $retrieve_status["response"], true);
 
@@ -115,7 +115,7 @@ catch (exception $e) {
 // Generate Variable Set, If Backup Already Started & Force Variable Set OR If Backup Not Already Started, Generate Account List
 if ((($generate == true) && ($retrieve_status["status"] == "1") && ($force == true)) ||
     (($generate == true) && ($retrieve_status["status"] != "1"))) {
-    $update_status = update_status(array(), "");
+    $update_status = update_status(array(), "", $config_name);
     $generate_account_list = generate_account_list();
     $log_file = $generate_account_list["log_file"];
     if ($generate_account_list["error"] == "1")
@@ -132,10 +132,15 @@ if ((($generate == true) && ($retrieve_status["status"] == "1") && ($force == tr
     }
 
 
-    $save_status = update_status($generate_account_list["account_list"], $generate_account_list["log_file"]);
+    $save_status = update_status($generate_account_list["account_list"], $generate_account_list["log_file"], $config_name);
     if ($save_status["error"] == "1")
         record_log("note", "(Generation) ERROR: " . $save_status["response"], true);
-    record_log("note", "Accounts To Be Backed Up: " . implode(", ", $generate_account_list["account_list"]), true);
+    record_log("note", "Accounts To Be Backed Up: " . implode(", ", $generate_account_list["account_list"]), false);
+    if(count($generate_account_list["account_excluded"]) > 0)
+    record_log("note", "Accounts Excluded From Backup By Config: " . implode(", ", $generate_account_list["account_excluded"]), false);
+    if(count($generate_account_list["account_suspended"]) > 0)
+    record_log("note", "Accounts Excluded From Backup Due To Being Suspended: " . implode(", ", $generate_account_list["account_suspended"]), false);
+    exit();
 }
 
 if (($generate == true) && ($retrieve_status["status"] == "1")) {
@@ -152,7 +157,7 @@ if (($generate == false) && ($retrieve_status["status"] == "1")) {
     $account = $retrieve_status["account_list"][0];
     //$retrieve_status["account_list"] = array_values($retrieve_status["account_list"]);
     unset($retrieve_status["account_list"][0]);
-    $save_status = update_status(array_values($retrieve_status["account_list"]), $retrieve_status["log_file"]);
+    $save_status = update_status(array_values($retrieve_status["account_list"]), $retrieve_status["log_file"], $config_name);
 
     if (($backup_accounts["error"] == "0") && (!empty($config["backup_email"])))
         record_log("note", "(" . $account .
@@ -177,7 +182,7 @@ if (($generate == false) && ($retrieve_status["status"] == "2")) {
     } else {
         record_log("note", "Log File Completed.");
     }
-    $update_status = update_status(array(), "");
+    $update_status = update_status(array(), "", $config_name);
 }
 
 ?>

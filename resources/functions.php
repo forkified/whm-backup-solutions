@@ -27,7 +27,7 @@
  * @filename    functions.php
  */
 
-$version = "0.7";
+$version = "0.8";
 
 /**
  * @name        check_version
@@ -138,6 +138,7 @@ WHM Backup Solutions (https://whmbackup.solutions) - V" . $version . "
 /**
  * @name        retrieve_status
  * @description Determines if a backup is required or is running. Status is saved in backup_status.php.
+ * @param       $config_name    (string)    The name of the config file to include e.g. config-NAME.php or secure-config-NAME.php.
  * @return      (array) error - Boolean 1 or 0,
  *                      response - Error Message (if applicable).
  *                      status - 0 = No Backup Required
@@ -146,11 +147,15 @@ WHM Backup Solutions (https://whmbackup.solutions) - V" . $version . "
  *                      account_list - List of accounts remaining to be backed up (If status == 2)
  *                      log_file     - Filename of log (If status == 1 or 2) 
  */
-function retrieve_status()
+function retrieve_status($config_name = null)
 {
 	global $directory;
 	$status_contents = false;
-	$file_name = $directory . "temp" . DIRECTORY_SEPARATOR . "status.php";
+	$config_file = "config";
+	if ((isset($config_name)) && (!empty($config_name)))
+		$config_file = preg_replace('/[^a-zA-Z0-9]/', '', $config_name);
+
+	$file_name = $directory . "temp" . DIRECTORY_SEPARATOR . "status-" . $config_file . ".php";
 	if (file_exists($file_name))
 	{
 		$handle = fopen($file_name, "r"); //open file in read mode
@@ -188,18 +193,22 @@ function retrieve_status()
 /**
  * @name        update_status
  * @description Save Status in backup_status.php.
- * @param       $account_list           (string)    List of accounts remaining to be backed up.
- * @param       $log_file               (string)    Filename of log 
+ * @param       $account_list   (string)    List of accounts remaining to be backed up.
+ * @param       $log_file       (string)    Filename of log
+ * @param       $config_name    (string)    The name of the config file to include e.g. config-NAME.php or secure-config-NAME.php. 
  * @return      (array) error - Boolean 1 or 0,
  *                      response - Error Message (if applicable). 
  */
-function update_status($account_list, $log_file)
+function update_status($account_list, $log_file, $config_name = null)
 {
 	global $directory;
 	$store = json_encode(array("account_list" => $account_list, "log_file" => $log_file));
 
-	// Open Status File.
-	$file_name = $directory . "temp" . DIRECTORY_SEPARATOR . "status.php";
+	$config_file = "config";
+	if ((isset($config_name)) && (!empty($config_name)))
+		$config_file = preg_replace('/[^a-zA-Z0-9]/', '', $config_name);
+
+	$file_name = $directory . "temp" . DIRECTORY_SEPARATOR . "status-" . $config_file . ".php";
 	$fp = fopen($file_name, 'w+');
 	if ($fp == false)
 		return array("error" => "1", "response" => "Unable To Open Status File (" . $file_name . ").");
@@ -228,9 +237,11 @@ function update_status($account_list, $log_file)
  */
 function generate_account_list()
 {
+	// Set Variables
 	global $config, $xmlapi;
 	$accounts_to_backup = array();
 	$accounts_to_exclude = array();
+	$accounts_suspended = array();
 	$valid_backup_types = array(
 		"1" => "",
 		"2" => "user",
@@ -240,49 +251,87 @@ function generate_account_list()
 		"6" => "ip");
 	$backup_type = $valid_backup_types[$config["type_of_backup"]];
 
+	// Get Backup Criteria/Exclusion Into Array From Config
 	$backup_criteria = explode(",", $config["backup_criteria"]);
 	$backup_exclusions = explode(",", $config["backup_exclusions"]);
 
 	try
 	{
+		// Retrieve WHM Account List
 		$xmlapi_listaccts = json_decode($xmlapi->listaccts(), true);
+        if (empty($xmlapi_listaccts["status"]))
+			return array(
+				"error" => "1",
+				"response" => "List Account - " . $xmlapi_listaccts["statusmsg"],
+				"log_file" => "backup-" . date("YmdHis", time()) . ".log");
 		if (isset($xmlapi_listaccts["cpanelresult"]["data"]["reason"]))
 			return array(
 				"error" => "1",
-				"response" => $xmlapi_listaccts["cpanelresult"]["data"]["reason"],
+				"response" => "List Account - " . $xmlapi_listaccts["cpanelresult"]["data"]["reason"],
 				"log_file" => "backup-" . date("YmdHis", time()) . ".log");
+        if (!isset($xmlapi_listaccts["acct"]))
+			return array(
+				"error" => "1",
+				"response" => "List Account - Unable To List Accounts",
+				"log_file" => "backup-" . date("YmdHis", time()) . ".log");
+		// Loops Through WHM Account List
 		foreach ($xmlapi_listaccts["acct"] as $acct)
 		{
-			if (empty($backup_type))
+			// If Backup Set To Anything But Backup All Accounts e.g. Backup By Domain Criteria Only
+			if (!empty($backup_type))
 			{
-				if (!in_array($acct["user"], $backup_exclusions))
-				{
-					$accounts_to_backup[] = $acct["user"];
-				} else
-				{
-					$accounts_to_exclude[] = $acct["user"];
-				}
-				continue;
-			} else
-			{
+				// Check If Account Is Specified To Be Backed Up
+				// $acct[domain] => example.com
+				// $backup_criteria => example.com
 				if (in_array($acct[$backup_type], $backup_criteria))
 				{
+					// Check If Account Username Specified In Exclusion List
 					if (!in_array($acct["user"], $backup_exclusions))
 					{
-						$accounts_to_backup[] = $acct["user"];
+						// Check If Account Is Suspended
+						if ($acct["suspended"] != "0")
+						{
+							$accounts_suspended[] = $acct["user"];
+						} else
+						{
+							$accounts_to_backup[] = $acct["user"];
+						}
 					} else
 					{
 						$accounts_to_exclude[] = $acct["user"];
 					}
 				}
+			} else
+			{
+				// If Backup Set To Backup All Accounts
+				// Check If Account Username Specified In Exclusion List
+				if (!in_array($acct["user"], $backup_exclusions))
+				{
+					// Check If Account Is Suspended
+					if ($acct["suspended"] != "0")
+					{
+						$accounts_suspended[] = $acct["user"];
+					} else
+					{
+						$accounts_to_backup[] = $acct["user"];
+					}
+				} else
+				{
+					$accounts_to_exclude[] = $acct["user"];
+				}
 			}
 		}
+		// Put Arrays In Descending Order
 		asort($accounts_to_backup);
 		asort($accounts_to_exclude);
+		asort($accounts_suspended);
+
 		return array(
 			"error" => "0",
 			"response" => "",
 			"account_list" => $accounts_to_backup,
+			"account_suspended" => $accounts_suspended,
+			"account_excluded" => $accounts_to_exclude,
 			"log_file" => "backup-" . date("YmdHis", time()) . ".log");
 	}
 	catch (exception $e)
