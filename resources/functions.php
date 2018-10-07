@@ -257,12 +257,22 @@ function generate_account_list()
 
 	try
 	{
-		// Retrieve WHM Account LIst
+		// Retrieve WHM Account List
 		$xmlapi_listaccts = json_decode($xmlapi->listaccts(), true);
+        if (empty($xmlapi_listaccts["status"]))
+			return array(
+				"error" => "1",
+				"response" => "List Account - " . $xmlapi_listaccts["statusmsg"],
+				"log_file" => "backup-" . date("YmdHis", time()) . ".log");
 		if (isset($xmlapi_listaccts["cpanelresult"]["data"]["reason"]))
 			return array(
 				"error" => "1",
-				"response" => $xmlapi_listaccts["cpanelresult"]["data"]["reason"],
+				"response" => "List Account - " . $xmlapi_listaccts["cpanelresult"]["data"]["reason"],
+				"log_file" => "backup-" . date("YmdHis", time()) . ".log");
+        if (!isset($xmlapi_listaccts["acct"]))
+			return array(
+				"error" => "1",
+				"response" => "List Account - Unable To List Accounts",
 				"log_file" => "backup-" . date("YmdHis", time()) . ".log");
 		// Loops Through WHM Account List
 		foreach ($xmlapi_listaccts["acct"] as $acct)
