@@ -12,7 +12,7 @@
 $config['date_format'] = "F j, Y, g:i:s a";
 
 // $config['timezone']
-// To ensure the log dates and times line up with where you are, you can set the timezone your in,
+// To ensure the log dates and times line up with where you are, you can set the timezone you're in,
 // in the setting below. Possible values can be found https://secure.php.net/manual/en/timezones.php.
 $config['timezone'] = date_default_timezone_set('Europe/London');
 
