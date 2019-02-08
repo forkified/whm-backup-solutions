@@ -3,18 +3,18 @@
 /**
  * WHM Backup Solutions
  * https://whmbackup.solutions
- * 
+ *
  * Description:     This script utilises cPanel's official API's to enable reseller
  *                  users to automate backups of accounts within their reseller account,
  *                  a feature currently missing.
- * 
+ *
  * Requirements:    cPanel Version 11.68+
  *                  PHP Version 5.6+
  *                  Curl
- * 
+ *
  * Instructions:    For instructions on how to configure and run this script see README.txt
  *                  or visit https://whmbackup.solutions/documentation/
- *  
+ *
  * LICENSE: This source file is subject to GNU GPL-3.0-or-later
  * that is available through the world-wide-web at the following URI:
  * https://www.gnu.org/licenses/gpl.html.  If you did not receive a copy of
@@ -37,7 +37,7 @@ $version = "0.9";
  *                      response - Error Message (This may also contain a response if the script is out of date).
  *                      version_status - 0 - Running Latest Version
  *                                       1 - Major Version Out Of Date
- *                                       2 - Minor Version Out Of Date 
+ *                                       2 - Minor Version Out Of Date
  */
 function check_version()
 {
@@ -87,7 +87,7 @@ function check_version()
  * @param       $log_message    (string)    Message to write to log.
  * @param       $stop           (boolean)   If set to true, will stop script running.
  * @return      (array) error - Boolean 1 or 0,
- *                      response - Error Message (if applicable). 
+ *                      response - Error Message (if applicable).
  */
 function record_log($type, $log_message, $stop = false)
 {
@@ -147,7 +147,7 @@ WHM Backup Solutions (https://whmbackup.solutions) - V" . $version . "
  *                               1 = Backup Running (Username of Accounts Remaining, Log File Returned)
  *                               2 = Backup Complete (Log File Returned)
  *                      account_list - List of accounts remaining to be backed up (If status == 2)
- *                      log_file     - Filename of log (If status == 1 or 2) 
+ *                      log_file     - Filename of log (If status == 1 or 2)
  */
 function retrieve_status($config_name = null)
 {
@@ -197,9 +197,9 @@ function retrieve_status($config_name = null)
  * @description Save Status in backup_status.php.
  * @param       $account_list   (string)    List of accounts remaining to be backed up.
  * @param       $log_file       (string)    Filename of log
- * @param       $config_name    (string)    The name of the config file to include e.g. config-NAME.php or secure-config-NAME.php. 
+ * @param       $config_name    (string)    The name of the config file to include e.g. config-NAME.php or secure-config-NAME.php.
  * @return      (array) error - Boolean 1 or 0,
- *                      response - Error Message (if applicable). 
+ *                      response - Error Message (if applicable).
  */
 function update_status($account_list, $log_file, $config_name = null)
 {
@@ -234,7 +234,7 @@ function update_status($account_list, $log_file, $config_name = null)
  * @global      $xmlapi         (object)    XML-API Class.
  * @return      (array) error - Boolean 1 or 0,
  *                      response - Error Message (if applicable).
- *                      account_list - An array containing the usernames of accounts to be backed up. 
+ *                      account_list - An array containing the usernames of accounts to be backed up.
  *                      log_file     - Filename of log.
  */
 function generate_account_list()
@@ -352,11 +352,11 @@ function generate_account_list()
  * @global      $log_file       (string)   Filename of log.
  * @param       $account_list   (array)    An array of usernames to be backed up.
  * @return      (array) error - Boolean 1 or 0,
- *                      response - Error Message (if applicable). 
+ *                      response - Error Message (if applicable).
  */
 function backup_accounts($account_list)
 {
-	global $log_file, $xmlapi, $config;
+	global $xmlapi, $config;
 
 	if (empty($config['backup_rdir']))
 		$config['backup_rdir'] = "/";
@@ -389,7 +389,7 @@ function backup_accounts($account_list)
  * @param       $subject        (string)   The subject of the email being sent.
  * @param       $message        (string)   The message of the email being sent.
  * @return      (array) error - Boolean 1 or 0,
- *                      response - Error Message (if applicable). 
+ *                      response - Error Message (if applicable).
  */
 function email_log($subject, $message)
 {
@@ -415,7 +415,7 @@ function email_log($subject, $message)
 	$message = $message . $contents; // Stop lines being longer than 70 characters.
 
 
-	if ($mail = mail($config["backup_email"], $subject, $message, "From: " . $config["backup_email"] . "\r\n") == false)
+	if (mail($config["backup_email"], $subject, $message, "From: " . $config["backup_email"] . "\r\n") == false)
 		return array("error" => "1", "response" =>
 				"Unable To Send Notification Email, An Error Occured While Trying To Send The Email.");
 
@@ -428,7 +428,7 @@ function email_log($subject, $message)
  * @global      $directory      (string)   Directory of main script.
  * @param       $config_name    (string)   The name of the config file to include e.g. config-NAME.php or secure-config-NAME.php.
  * @return      (array) error - Boolean 1 or 0,
- *                      response - Error Message (if applicable). 
+ *                      response - Error Message (if applicable).
  */
 function include_config($config_name = null)
 {
@@ -437,10 +437,14 @@ function include_config($config_name = null)
 	if ((isset($config_name)) && (!empty($config_name)))
 		$config_file = "config-" . preg_replace('/[^a-zA-Z0-9]/', '', $config_name) . ".php";
 
+
 	//Check Existance of Config and Include.
 	if (file_exists($directory . $config_file))
 	{
 		include ($directory . $config_file);
+
+		if((!isset($config)) || (is_array($config))) return array("error" => "1", "response" => "&#36;config not defined in config.");
+
 		if ($config["obfuscate_config"] == true)
 		{
 			$obfuscated_config = bin2hex(gzdeflate(json_encode($config), 9));
