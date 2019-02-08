@@ -120,7 +120,8 @@ if ((($generate == true) && ($retrieve_status["status"] == "1") && ($force == tr
     $log_file = $generate_account_list["log_file"];
     if ($generate_account_list["error"] == "1")
         record_log("note", "(Generation) ERROR: " . $generate_account_list["response"], true);
-
+    
+    // Check For New Version
     if ($config["check_version"] != '0') {
         $check_version = check_version();
         if ($check_version["error"])
