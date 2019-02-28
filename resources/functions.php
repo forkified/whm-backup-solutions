@@ -443,7 +443,7 @@ function include_config($config_name = null)
 	{
 		include ($directory . $config_file);
 
-		if((!isset($config)) || (is_array($config))) return array("error" => "1", "response" => "&#36;config not defined in config.");
+		if((!isset($config)) || (!is_array($config))) return array("error" => "1", "response" => "&#36;config not defined in config.");
 
 		if ($config["obfuscate_config"] == true)
 		{

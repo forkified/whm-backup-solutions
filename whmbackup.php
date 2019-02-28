@@ -104,7 +104,7 @@ try {
         }
 
         $xmlapi->set_output('json');
-    $xmlapi->set_debug(0);
+        $xmlapi->set_debug(0);
 
 
 }
