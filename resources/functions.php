@@ -224,9 +224,6 @@ function ftp_is_dir($conn_id, $dir)
 function ftp_directory_creation($conn_id, $dir)
 {
     $dir = str_ireplace("%20", " ", $dir);
-    if (ftp_is_dir($conn_id, $dir)) {
-        return array("error" => "0", "response" => "FTP Directory Exists.");
-    }
     $directories = array_filter(explode("/", $dir));
     $cdir = $pdir = "/";
     foreach ($directories as $directory) {
@@ -268,10 +265,17 @@ function ftp_verification()
             return array("error" => "1", "response" => "Unable To Login To FTP Server (" . $config['backup_hostname'] .
                     ":" . $config['backup_port'] . ").");
 
-        $ftp_directory_creation = ftp_directory_creation($conn_id, $config['backup_rdir']);
-        if ($ftp_directory_creation["error"] == "1")
-            return array("error" => "1", "response" => $ftp_directory_creation["response"]);
-
+        $dir = str_ireplace("%20", " ", $config['backup_rdir']);
+        if (!ftp_is_dir($conn_id, $dir)) {
+            if ($config['skip_ftp_directory_creation'] == "1") {
+                return array("error" => "1", "response" =>
+                        "FTP Directory Doesn't Exist, Creation Of Directory Skipped.");
+            } else {
+                $ftp_directory_creation = ftp_directory_creation($conn_id, $config['backup_rdir']);
+                if ($ftp_directory_creation["error"] == "1")
+                    return array("error" => "1", "response" => $ftp_directory_creation["response"]);
+            }
+        }
         return array("error" => "0", "response" => "FTP Verification Succeeded.");
     }
     catch (exception $e) {
