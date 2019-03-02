@@ -104,7 +104,7 @@ try {
         }
 
         $xmlapi->set_output('json');
-        $xmlapi->set_debug(0);
+    $xmlapi->set_debug(0);
 
 
 }
@@ -116,15 +116,34 @@ catch (exception $e) {
 if ((($generate == true) && ($retrieve_status["status"] == "1") && ($force == true)) ||
     (($generate == true) && ($retrieve_status["status"] != "1"))) {
     $update_status = update_status(array(), "", $config_name);
+
+    // Generate Account List
     $generate_account_list = generate_account_list();
     $log_file = $generate_account_list["log_file"];
     if ($generate_account_list["error"] == "1")
         record_log("note", "(Generation) ERROR: " . $generate_account_list["response"], true);
-    
+
+    // Verify FTP
+    if (($config['backup_destination'] == "ftp") || ($config['backup_destination'] ==
+        "passiveftp")) {
+        // Verify If FTP Details Are Correct.
+        if (!isset($config["skip_ftp_verification"]) || ($config["skip_ftp_verification"] ==
+            1)) {
+            $ftp_verification = ftp_verification();
+            if ($ftp_verification["error"] == "1") {
+                record_log("note", 
+                "FTP Verification ERROR: " . $ftp_verification["response"], true);
+            } else {
+                record_log("note", $ftp_verification["response"]);
+            }
+        }
+
+    }
+
     // Check For New Version
     if ($config["check_version"] != '0') {
         $check_version = check_version();
-        if ($check_version["error"])
+        if ($check_version["error"] == "1")
             record_log("note", "UPDATE CHECK ERROR: " . $check_version["response"]);
         if (($config["check_version"] == $check_version["version_status"]) || (($config["check_version"] ==
             "2") && ($check_version["version_status"] == "1"))) {
@@ -133,14 +152,16 @@ if ((($generate == true) && ($retrieve_status["status"] == "1") && ($force == tr
     }
 
 
-    $save_status = update_status($generate_account_list["account_list"], $generate_account_list["log_file"], $config_name);
+    $save_status = update_status($generate_account_list["account_list"], $generate_account_list["log_file"],
+        $config_name);
     if ($save_status["error"] == "1")
         record_log("note", "(Generation) ERROR: " . $save_status["response"], true);
     record_log("note", "Accounts To Be Backed Up: " . implode(", ", $generate_account_list["account_list"]), false);
-    if(count($generate_account_list["account_excluded"]) > 0)
-    record_log("note", "Accounts Excluded From Backup By Config: " . implode(", ", $generate_account_list["account_excluded"]), false);
-    if(count($generate_account_list["account_suspended"]) > 0)
-    record_log("note", "Accounts Excluded From Backup Due To Being Suspended: " . implode(", ", $generate_account_list["account_suspended"]), false);
+    if (count($generate_account_list["account_excluded"]) > 0)
+        record_log("note", "Accounts Excluded From Backup By Config: " . implode(", ", $generate_account_list["account_excluded"]), false);
+    if (count($generate_account_list["account_suspended"]) > 0)
+        record_log("note", "Accounts Excluded From Backup Due To Being Suspended: " .
+            implode(", ", $generate_account_list["account_suspended"]), false);
     exit();
 }
 
@@ -158,7 +179,8 @@ if (($generate == false) && ($retrieve_status["status"] == "1")) {
     $account = $retrieve_status["account_list"][0];
     //$retrieve_status["account_list"] = array_values($retrieve_status["account_list"]);
     unset($retrieve_status["account_list"][0]);
-    $save_status = update_status(array_values($retrieve_status["account_list"]), $retrieve_status["log_file"], $config_name);
+    $save_status = update_status(array_values($retrieve_status["account_list"]), $retrieve_status["log_file"],
+        $config_name);
 
     if (($backup_accounts["error"] == "0") && (!empty($config["backup_email"])))
         record_log("note", "(" . $account .
