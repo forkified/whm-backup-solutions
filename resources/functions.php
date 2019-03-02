@@ -84,6 +84,7 @@ function check_version()
  * @global      $log_file       (string)    Filename of log (Read Only).
  * @global      $version        (string)    Version of Script (Read Only).
  * @global      $config         (array)     Config Values As Set in Config File (Read Only).
+ * @global      $directory      (string)     Directory of script.
  * @param       $type           (string)    Can be set to either note or system.
  * @param       $log_message    (string)    Message to write to log.
  * @param       $stop           (boolean)   If set to true, will stop script running.
@@ -145,6 +146,7 @@ WHM Backup Solutions (https://whmbackup.solutions) - V" . $version . "
  * @name        retrieve_status
  * @description Determines if a backup is required or is running. Status is saved in backup_status.php.
  * @param       $config_name    (string)    The name of the config file to include e.g. config-NAME.php or secure-config-NAME.php.
+ * @global      $directory      (string)     Directory of script.
  * @return      (array) error - Boolean 1 or 0,
  *                      response - Error Message (if applicable).
  *                      status - 0 = No Backup Required
