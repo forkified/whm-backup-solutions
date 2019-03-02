@@ -10,10 +10,14 @@ Script Files
 	config.php.new
 	secure-config.php.new
 	LICENSE.txt
+	index.html
 	resources/functions.php
 	resources/xmlapi/xmlapi.php
+	resources/index.html
 	temp/
+	temp/index.html
 	logs/
+	logs/index.html
 ===============================================================
 
 ===============================================================
