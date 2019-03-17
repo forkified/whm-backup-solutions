@@ -266,6 +266,10 @@ function ftp_verification($remote_dir)
 			return array("error" => "1", "response" => "Unable To Login To FTP Server (" . $config['backup_hostname'] .
 					":" . $config['backup_port'] . ").");
 
+	   // Enable Passive Mode?
+	   if (($config["backup_destination"] == "passiveftp") && (!$passive_mode = ftp_pasv($conn_id, true)))
+		record_log("system", "Unable to make a connection to the FTP server using Passive Mode.", true);
+
 		$dir = str_ireplace("%20", " ", $remote_dir);
 		if (!ftp_is_dir($conn_id, $dir))
 		{
