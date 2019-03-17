@@ -82,7 +82,7 @@ function check_version()
  * @global      $log_file       (string)    Filename of log (Read Only).
  * @global      $version        (string)    Version of Script (Read Only).
  * @global      $config         (array)     Config Values As Set in Config File (Read Only).
- * @global      $directory      (string)     Directory of script.
+ * @global      $directory      (string)    Directory of script.
  * @param       $type           (string)    Can be set to either note or system.
  * @param       $log_message    (string)    Message to write to log.
  * @param       $stop           (boolean)   If set to true, will stop script running.
@@ -294,6 +294,7 @@ function ftp_verification($remote_dir)
  * @param       $account_list   (string)    List of accounts remaining to be backed up.
  * @param       $log_file       (string)    Filename of log
  * @param       $config_name    (string)    The name of the config file to include e.g. config-NAME.php or secure-config-NAME.php.
+ * @global      $directory      (string)     Directory of script.
  * @return      (array) error - Boolean 1 or 0,
  *                      response - Error Message (if applicable).
  */
@@ -326,8 +327,8 @@ function update_status($account_list, $log_file, $config_name = null)
  * @name        generate_account_list
  * @description Return an array containing the username of all accounts within the reseller as defined
  *              within the configuration file, it will also create a new log file.
- * @global      $config         (array)     Config Values As Set in Config File (Read Only).
- * @global      $xmlapi         (object)    XML-API Class.
+ * @global      $config         (array)    Config Values As Set in Config File (Read Only).
+ * @global      $xmlapi      (object)   API object to connect to cPanel's API.
  * @return      (array) error - Boolean 1 or 0,
  *                      response - Error Message (if applicable).
  *                      account_list - An array containing the usernames of accounts to be backed up.
@@ -445,7 +446,8 @@ function generate_account_list()
  * @name        backup_accounts
  * @description Identifies the next account to be backed up (Alphabetical Order), then submits the
  *              account for processing.
- * @global      $log_file       (string)   Filename of log.
+ * @global      $xmlapi      (object)   API object to connect to cPanel's API.
+ * @global      $config         (array)     Config Values As Set in Config File (Read Only).
  * @param       $account_list   (array)    An array of usernames to be backed up.
  * @return      (array) error - Boolean 1 or 0,
  *                      response - Error Message (if applicable).
@@ -507,6 +509,8 @@ function backup_accounts($account_list)
  * @name        email_log
  * @description Sends the specified log file to the email address.
  * @global      $log_file       (string)   Filename of log.
+ * @global      $config         (array)    Config Values As Set in Config File (Read Only).
+ * @global      $directory      (string)   Directory of script.
  * @param       $subject        (string)   The subject of the email being sent.
  * @param       $message        (string)   The message of the email being sent.
  * @return      (array) error - Boolean 1 or 0,
