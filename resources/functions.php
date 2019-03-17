@@ -197,12 +197,13 @@ function retrieve_status($config_name = null)
  * @name        ftp_is_dir
  * @description Checks if the directory specified is valid.
  * @param       $conn_id    (FTP object)    An open FTP connection.
+ * @param       $remote_dir     (string)    The FTP Folder Path With All Dynamic Variables Resolved.
  * @return      true or false
  */
-function ftp_is_dir($conn_id, $dir)
+function ftp_is_dir($conn_id, $remote_dir)
 {
 	$original_directory = @ftp_pwd($conn_id);
-	if (@ftp_chdir($conn_id, $dir))
+	if (@ftp_chdir($conn_id, $remote_dir))
 	{
 		// If it is a directory, then change the directory back to the original directory
 		@ftp_chdir($conn_id, $original_directory);
@@ -215,13 +216,14 @@ function ftp_is_dir($conn_id, $dir)
  * @name        ftp_directory_creation
  * @description Creates the directory structure on the FTP server.
  * @param       $conn_id    (FTP object)    An open FTP connection.
+ * @param       $remote_dir     (string)    The FTP Folder Path With All Dynamic Variables Resolved.
  * @return      (array) error - Boolean 1 or 0,
  *                      response - Error Message (if applicable).
  */
-function ftp_directory_creation($conn_id, $dir)
+function ftp_directory_creation($conn_id, $remote_dir)
 {
-	$dir = str_ireplace("%20", " ", $dir);
-	$directories = array_filter(explode("/", $dir));
+	$remote_dir = str_ireplace("%20", " ", $remote_dir);
+	$directories = array_filter(explode("/", $remote_dir));
 	$cdir = $pdir = "/";
 	foreach ($directories as $directory)
 	{
@@ -241,7 +243,8 @@ function ftp_directory_creation($conn_id, $dir)
 
 /**
  * @name        ftp_verification
- * @description Verifies if PHP can login and list the files within the FTP server..
+ * @description Verifies if PHP can login and list the files within the FTP server.
+ * @param       $remote_dir     (string)    The FTP Folder Path With All Dynamic Variables Resolved.
  * @global      $config         (array)     Config Values As Set in Config File (Read Only).
  * @return      (array) error - Boolean 1 or 0,
  *                      response - Error Message (if applicable).
