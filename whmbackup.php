@@ -123,23 +123,6 @@ if ((($generate == true) && ($retrieve_status["status"] == "1") && ($force == tr
     if ($generate_account_list["error"] == "1")
         record_log("note", "(Generation) ERROR: " . $generate_account_list["response"], true);
 
-    // Verify FTP
-    if (($config['backup_destination'] == "ftp") || ($config['backup_destination'] ==
-        "passiveftp")) {
-        // Verify If FTP Details Are Correct.
-        if (!isset($config["skip_ftp_verification"]) || ($config["skip_ftp_verification"] ==
-            1)) {
-            $ftp_verification = ftp_verification();
-            if ($ftp_verification["error"] == "1") {
-                record_log("note", 
-                "FTP Verification ERROR: " . $ftp_verification["response"], true);
-            } else {
-                record_log("note", $ftp_verification["response"]);
-            }
-        }
-
-    }
-
     // Check For New Version
     if ($config["check_version"] != '0') {
         $check_version = check_version();
