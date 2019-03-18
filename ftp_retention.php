@@ -97,36 +97,29 @@ try
 	if (($config["backup_destination"] == "passiveftp") && (!$passive_mode = ftp_pasv($conn_id, true)))
 		record_log("system", "Unable to make a connection to the FTP server using Passive Mode.", true);
 
+    $remote_directory = $config['backup_rdir'];   
+    
+    if(!empty($config['ftp_retention_rdir']))
+    $remote_directory = $config['ftp_retention_rdir'];
+
+    $backups = ftp_find_backup($conn_id , $remote_directory);
+    if($backups["error"] == "1")
+        record_log("system", $backups["response"], true);
+        
+    $backups = $backups["response"];
+
 	// Retrieve Directory Listing
-	if (!$contents = ftp_nlist($conn_id, $config['backup_rdir']))
-		record_log("system", "Unable to retrieve file listing from FTP Server.", true);
+//	if (!$contents = ftp_nlist($conn_id, $config['backup_rdir']))
+//		record_log("system", "Unable to retrieve file listing from FTP Server.", true);
 
 	// Loop Through FTP Directory Listing
 	// e.g. $list_key => $list_file_name (e.g. 0 => backup-month.day.year_hour-minute-second_username.tar.gz)
-	foreach ($contents as $list_key => $list_file_name)
-	{
-		// Find Valid Backup Types
-		if (fnmatch("*backup-*.tar.gz", $list_file_name))
-		{
-			// Extract Info From Filename
-			$file_name = str_replace(array(
-				"backup-",
-				".tar.gz",
-				$config['backup_rdir'],
-				"/"), "", $list_file_name);
-			// Remove File Path From FIlename
-			$list_file_name = str_replace(array($config['backup_rdir'], "/"), "", $list_file_name);
-
-			list($backup_date, $backup_time, $backup_name) = explode("_", $file_name);
-
-			// Create Unix Timestamp
-			if (!$d = DateTime::createFromFormat('n.j.Y H-i-s', $backup_date . " " . $backup_time))
-				continue;
-
-			// Put Backup File Name Into Sorted Array
-			$backups[$backup_name][$d->getTimestamp()] = $list_file_name;
-		}
-	}
+//	foreach ($contents as $list_key => $list_file_name)
+//	{
+//        if(ftp_is_dir($conn_id, $list_file_name)){
+//            
+//        }
+//  }
 
 	// Sort $backups Array Alphanumerically
 	ksort($backups);
@@ -170,13 +163,13 @@ try
 						// Remove Backup From Array.
 						unset($bkey[$backup_timestamp]);
 						// Delete Backup From FTP Server.
-						if (!ftp_delete($conn_id, $config['backup_rdir'] . "/" . $backup_file))
+						if (!ftp_delete($conn_id, $backup_file))
 						{
-							$record_log_message .= "\r\nUnable To Remove " . $config['backup_rdir'] . "/" . $backup_file .
+							$record_log_message .= "\r\nUnable To Remove " . $backup_file .
 								" From FTP Server.";
 						} else
 						{
-							$record_log_message .= "\r\n- " . $config['backup_rdir'] . "/" . $backup_file .
+							$record_log_message .= "\r\n- " . $backup_file .
 								" has been removed.";
 						}
 
@@ -200,7 +193,7 @@ try
 	{
 		$email_log = email_log("Backup Retention Log (WHM Backup Solutions)",
 			"The FTP backup retention script has been run on " . $config['backup_hostname'] . ":" . $config['backup_port'] .
-			$config['backup_rdir'] . ". The log is available below.\r\n");
+			$remote_directory . ". The log is available below.\r\n");
 		if ($email_log["error"] == "0")
 		{
 			record_log("note", "Log File Successfully Emailed To " . $config["backup_email"]);

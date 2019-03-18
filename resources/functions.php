@@ -266,14 +266,14 @@ function ftp_verification($remote_dir)
 			return array("error" => "1", "response" => "Unable To Login To FTP Server (" . $config['backup_hostname'] .
 					":" . $config['backup_port'] . ").");
 
-	   // Enable Passive Mode?
-	   if (($config["backup_destination"] == "passiveftp") && (!$passive_mode = ftp_pasv($conn_id, true)))
-		record_log("system", "Unable to make a connection to the FTP server using Passive Mode.", true);
+		// Enable Passive Mode?
+		if (($config["backup_destination"] == "passiveftp") && (!$passive_mode = ftp_pasv($conn_id, true)))
+			record_log("system", "Unable to make a connection to the FTP server using Passive Mode.", true);
 
 		$dir = str_ireplace("%20", " ", $remote_dir);
 		if (!ftp_is_dir($conn_id, $dir))
 		{
-            if ((isset($config['skip_ftp_directory_creation'])) && ($config['skip_ftp_directory_creation'] == "1"))
+			if ((isset($config['skip_ftp_directory_creation'])) && ($config['skip_ftp_directory_creation'] == "1"))
 			{
 				return array("error" => "1", "response" => "FTP Directory '" . $remote_dir .
 						"' Doesn't Exist, Creation Of Directory Skipped.");
@@ -291,6 +291,60 @@ function ftp_verification($remote_dir)
 		return array("error" => "1", "response" => $e->getMessage());
 	}
 }
+
+function ftp_find_backup($conn_id, $directory)
+{
+    global $config;
+	$backups = array();
+
+	// Retrieve Directory Listing
+	if (!$contents = ftp_nlist($conn_id, $directory))
+		return array("error" => "1", "response" => "Unable to retrieve file listing for " . $directory .
+				" from FTP Server.");
+
+	// Loop Through FTP Directory Listing
+	// e.g. $list_key => $list_file_name (e.g. 0 => backup-month.day.year_hour-minute-second_username.tar.gz)
+	foreach ($contents as $list_key => $list_file_name)
+	{
+       if(($list_file_name == ".") || ($list_file_name == "..")) continue;
+       
+        // Check If Is File/Directory
+		if (ftp_is_dir($conn_id, $directory . "/" . $list_file_name))
+		{
+            if((isset($config['ftp_retention_skip_sub_directories'])) && ($config['ftp_retention_skip_sub_directories'] == "1")) continue;
+            
+			$ftp_find_backup = ftp_find_backup($conn_id, $directory . "/" . $list_file_name);
+			if ($ftp_find_backup["error"] == "1")
+				return array("error" => "1", "response" => $ftp_find_backup["response"]);
+            $backups = array_merge($backups, $ftp_find_backup["response"]);
+		} else
+		{
+			// Find Valid Backup Types
+			if (fnmatch("*backup-*.tar.gz", $list_file_name))
+			{
+				// Extract Info From Filename
+				$file_name = str_replace(array(
+					"backup-",
+					".tar.gz",
+					$directory,
+					"/"), "", $list_file_name);
+				// Remove File Path From FIlename
+				$list_file_name = str_replace(array($directory, "/"), "", $list_file_name);
+
+				list($backup_date, $backup_time, $backup_name) = explode("_", $file_name);
+
+				// Create Unix Timestamp
+				if (!$d = DateTime::createFromFormat('n.j.Y H-i-s', $backup_date . " " . $backup_time))
+					continue;
+
+				// Put Backup File Name Into Sorted Array
+				$backups[$backup_name][$d->getTimestamp()] = $directory . "/" . $list_file_name;
+			}
+		}
+	}
+    return array("error" => "0", "response" => $backups);
+}
+
 
 /**
  * @name        update_status
@@ -484,8 +538,8 @@ function backup_accounts($account_list)
 		$config['backup_port'], // Destination Port
 		$remote_dir // Remote Path To Storage Directory
 			);
-            
-   	// Verify FTP
+
+	// Verify FTP
 	if (($config['backup_destination'] == "ftp") || ($config['backup_destination'] == "passiveftp"))
 	{
 		// Verify If FTP Details Are Correct.
@@ -496,7 +550,7 @@ function backup_accounts($account_list)
 				return array("error" => "1", "response" => "FTP Verification ERROR: " . $ftp_verification["response"]);
 		}
 
-	} 
+	}
 
 	$result = json_decode($xmlapi->api1_query($account_list[0], 'Fileman', 'fullbackup', $api_args), true);
 	if (isset($result["cpanelresult"]["data"]["reason"]))
