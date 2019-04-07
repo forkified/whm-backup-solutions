@@ -49,12 +49,19 @@ function check_version()
 	curl_setopt($curl, CURLOPT_HTTPHEADER, array('Script-Version: ' . $version));
 	curl_setopt($curl, CURLOPT_TIMEOUT, 5);
 	$curl_data = curl_exec($curl);
+	curl_close($curl);
 
 	if ($curl_data === false)
 		return array("error" => "1", "response" => "Curl Error During Update Check: " . curl_error($curl)); // Error During Curl
 
-	$data = json_decode($curl_data, true);
+	if (!($data = json_decode($curl_data, true)))
+		return array("error" => "1", "response" => "Invalid JSON Response From Update Server.");
+	if ((!isset($data["version_major"])) || (!isset($data["version_minor"])) || (!isset($data["hash"])))
+		return array("error" => "1", "response" =>
+				"Major, Minor or Hash Missing From JSON Response From Update Server.");
+
 	$script_version = explode(".", $version);
+
 	if (($script_version["0"] == $data["version_major"]) && ($script_version["1"] == $data["version_minor"]))
 		return array(
 			"error" => "0",
@@ -62,17 +69,61 @@ function check_version()
 			"version_status" => "0"); // Up To Date
 
 	if ($script_version["0"] < $data["version_major"])
+	{
 		return array(
 			"error" => "0",
-			"response" => "This Script Is Running A Major Version Out Of Date. Not Updating May Affect The Ability To Keep Your Accounts Secure Or Actually Run The Script As cPanel Updates Their Software. Please Update As Soon As Possible.",
-			"version_status" => "1"); // Out Of Date - Major Version
+			"response" => "This Script Is Running A Major Version Out Of Date.",
+			"version_status" => "1",
+            "hash" => $data["hash"]); // Out Of Date - Major Version
+	}
 
 	if ($script_version["1"] < $data["version_minor"])
 		return array(
 			"error" => "0",
-			"response" => "This Script Is Running A Minor Version Out Of Date. Ensure Updates Are Installed To Ensure Your Accounts Remain Secure.",
-			"version_status" => "2"); // Out Of Date - Minor Version
+			"response" => "This Script Is Running A Minor Version Out Of Date.",
+			"version_status" => "2",
+            "hash" => $data["hash"]); // Out Of Date - Minor Version
+}
+
+function update_script($hash)
+{
+	global $directory, $config;
+	$curl = curl_init();
+
+	if (file_exists($directory . "update.zip"))
+	{
+		if (!unlink($directory . "update.zip"))
+			return array("error" => "1", "response" => "Unable To Remove Existing update.zip");
+	}
+
+	curl_setopt($curl, CURLOPT_URL, 'https://whmbackup.solutions/download-latest-version/');
+	$fp = fopen($directory . 'update.zip', 'w+');
+	curl_setopt($curl, CURLOPT_FILE, $fp);
+	curl_setopt($curl, CURLOPT_HTTPHEADER, array('Auto Update: Yes'));
+	curl_setopt($curl, CURLOPT_TIMEOUT, 180);
+	curl_exec($curl);
 	curl_close($curl);
+	fclose($fp);
+
+	if (!hash_equals(hash_hmac_file('sha512', 'update.zip', 'XAM6LOQKBlf&&Cgjs2^y42@4dKDWSXgjx!P'), $hash))
+		return array("error" => "1", "response" => "Update File Verification Failed.");
+
+	$zip = new ZipArchive;
+	if ($zip->open($directory . 'update.zip') === true)
+	{
+		if (!$zip->extractTo($directory))
+			return array("error" => "1", "response" => "Unable to Extract update.zip.");
+		$zip->close();
+	} else
+	{
+		return array("error" => "1", "response" => "Update to Open update.zip.");
+	}
+
+	if (!unlink($directory . "update.zip"))
+		return array("error" => "1", "response" => "Unable To Remove update.zip");
+
+	return array("error" => "0", "response" => "Successfully Updated.");
+
 }
 
 
@@ -294,7 +345,7 @@ function ftp_verification($remote_dir)
 
 function ftp_find_backup($conn_id, $directory)
 {
-    global $config;
+	global $config;
 	$backups = array();
 
 	// Retrieve Directory Listing
@@ -306,17 +357,20 @@ function ftp_find_backup($conn_id, $directory)
 	// e.g. $list_key => $list_file_name (e.g. 0 => backup-month.day.year_hour-minute-second_username.tar.gz)
 	foreach ($contents as $list_key => $list_file_name)
 	{
-       if(($list_file_name == ".") || ($list_file_name == "..")) continue;
-       
-        // Check If Is File/Directory
+		if (($list_file_name == ".") || ($list_file_name == ".."))
+			continue;
+
+		// Check If Is File/Directory
 		if (ftp_is_dir($conn_id, $directory . "/" . $list_file_name))
 		{
-            if((isset($config['ftp_retention_skip_sub_directories'])) && ($config['ftp_retention_skip_sub_directories'] == "1")) continue;
-            
+			if ((isset($config['ftp_retention_skip_sub_directories'])) && ($config['ftp_retention_skip_sub_directories'] ==
+				"1"))
+				continue;
+
 			$ftp_find_backup = ftp_find_backup($conn_id, $directory . "/" . $list_file_name);
 			if ($ftp_find_backup["error"] == "1")
 				return array("error" => "1", "response" => $ftp_find_backup["response"]);
-            $backups = array_merge($backups, $ftp_find_backup["response"]);
+			$backups = array_merge($backups, $ftp_find_backup["response"]);
 		} else
 		{
 			// Find Valid Backup Types
@@ -342,7 +396,7 @@ function ftp_find_backup($conn_id, $directory)
 			}
 		}
 	}
-    return array("error" => "0", "response" => $backups);
+	return array("error" => "0", "response" => $backups);
 }
 
 

@@ -30,165 +30,192 @@ $directory = realpath(__dir__ ) . DIRECTORY_SEPARATOR;
 
 // Include Functions file.
 include ($directory . "resources" . DIRECTORY_SEPARATOR . "functions.php");
-include ($directory . "resources" . DIRECTORY_SEPARATOR . "xmlapi" .
-    DIRECTORY_SEPARATOR . "xmlapi.php");
+include ($directory . "resources" . DIRECTORY_SEPARATOR . "xmlapi" . DIRECTORY_SEPARATOR . "xmlapi.php");
 
 // Variables
 $generate = null;
 $force = null;
 $config_name = null;
 
-if ((PHP_SAPI == 'cli')) {
-    foreach ($argv as $arg) {
-        list($arg_x, $arg_y) = explode('=', $arg);
-        $_GET[$arg_x] = $arg_y;
-    }
+if ((PHP_SAPI == 'cli'))
+{
+	foreach ($argv as $arg)
+	{
+		list($arg_x, $arg_y) = explode('=', $arg);
+		$_GET[$arg_x] = $arg_y;
+	}
 
 }
 
 $generate = array_key_exists("generate", $_GET);
 $force = array_key_exists("force", $_GET);
 if (array_key_exists("config", $_GET))
-    $config_name = $_GET["config"];
+	$config_name = $_GET["config"];
 
 $include_config = include_config($config_name);
 if ($include_config["error"])
-    record_log("system", $include_config["response"], true);
+	record_log("system", $include_config["response"], true);
 $config = $include_config["response"];
 
 // Valid Config Variables
 $config_variables = array(
-    "date_format",
-    "timezone",
-    "obfuscate_config",
-    "check_version",
-    "whm_hostname",
-    "whm_port",
-    "whm_username",
-    "whm_auth",
-    "whm_auth_key",
-    "type_of_backup",
-    "backup_criteria",
-    "backup_exclusions",
-    "backup_destination",
-    "backup_hostname",
-    "backup_port",
-    "backup_user",
-    "backup_pass",
-    "backup_email",
-    "backup_rdir");
+	"date_format",
+	"timezone",
+	"obfuscate_config",
+	"check_version",
+	"whm_hostname",
+	"whm_port",
+	"whm_username",
+	"whm_auth",
+	"whm_auth_key",
+	"type_of_backup",
+	"backup_criteria",
+	"backup_exclusions",
+	"backup_destination",
+	"backup_hostname",
+	"backup_port",
+	"backup_user",
+	"backup_pass",
+	"backup_email",
+	"backup_rdir");
 
 // Check Config For All Required Variables.
-foreach ($config_variables as $var) {
-    if (!isset($config[$var]))
-        record_log("system", "Variable &#36;config[&#34;" . $var .
-            "&#34;] Missing From Config. Please Generate A New Configuration File Using config.php.new", true);
+foreach ($config_variables as $var)
+{
+	if (!isset($config[$var]))
+		record_log("system", "Variable &#36;config[&#34;" . $var .
+			"&#34;] Missing From Config. Please Generate A New Configuration File Using config.php.new", true);
 }
 
 // Retrieve Backup Status
 $retrieve_status = retrieve_status($config_name);
 if ($retrieve_status["error"] == "1")
-    record_log("system", $retrieve_status["response"], true);
+	record_log("system", $retrieve_status["response"], true);
 
 $log_file = $retrieve_status["log_file"];
 
-try {
-    $xmlapi = new xmlapi($config["whm_hostname"]);
-    if ($config["whm_auth"] == "password") {
-        $xmlapi->password_auth($config["whm_username"], $config["whm_auth_key"]);
-    } else
-        if ($config["whm_auth"] == "hash") {
-            $xmlapi->hash_auth($config["whm_username"], $config["whm_auth_key"]);
-        } else {
-            record_log("system", "Invalid Authentication Type, Set &#36;config[\"whm_auth\"] to either password or hash.", true);
-        }
+try
+{
+	$xmlapi = new xmlapi($config["whm_hostname"]);
+	if ($config["whm_auth"] == "password")
+	{
+		$xmlapi->password_auth($config["whm_username"], $config["whm_auth_key"]);
+	} else
+		if ($config["whm_auth"] == "hash")
+		{
+			$xmlapi->hash_auth($config["whm_username"], $config["whm_auth_key"]);
+		} else
+		{
+			record_log("system", "Invalid Authentication Type, Set &#36;config[\"whm_auth\"] to either password or hash.", true);
+		}
 
-        $xmlapi->set_output('json');
-    $xmlapi->set_debug(0);
+		$xmlapi->set_output('json');
+	$xmlapi->set_debug(0);
 
 
 }
-catch (exception $e) {
-    record_log("system", "XML-API Error: " . $e->getMessage(), true);
+catch (exception $e)
+{
+	record_log("system", "XML-API Error: " . $e->getMessage(), true);
 }
 
 // Generate Variable Set, If Backup Already Started & Force Variable Set OR If Backup Not Already Started, Generate Account List
-if ((($generate == true) && ($retrieve_status["status"] == "1") && ($force == true)) ||
-    (($generate == true) && ($retrieve_status["status"] != "1"))) {
-    $update_status = update_status(array(), "", $config_name);
+if ((($generate == true) && ($retrieve_status["status"] == "1") && ($force == true)) || (($generate == true) &&
+	($retrieve_status["status"] != "1")))
+{
+	$update_status = update_status(array(), "", $config_name);
 
-    // Generate Account List
-    $generate_account_list = generate_account_list();
-    $log_file = $generate_account_list["log_file"];
-    if ($generate_account_list["error"] == "1")
-        record_log("note", "(Generation) ERROR: " . $generate_account_list["response"], true);
+	// Generate Account List
+	$generate_account_list = generate_account_list();
+	$log_file = $generate_account_list["log_file"];
+	if ($generate_account_list["error"] == "1")
+		record_log("note", "(Generation) ERROR: " . $generate_account_list["response"], true);
 
-    // Check For New Version
-    if ($config["check_version"] != '0') {
-        $check_version = check_version();
-        if ($check_version["error"] == "1")
-            record_log("note", "UPDATE CHECK ERROR: " . $check_version["response"]);
-        if (($config["check_version"] == $check_version["version_status"]) || (($config["check_version"] ==
-            "2") && ($check_version["version_status"] == "1"))) {
-            record_log("note", "UPDATE CHECK: " . $check_version["response"]);
-        }
-    }
+	// Check For New Version
+	if ($config["check_version"] != '0')
+	{
+		$check_version = check_version();
+		if ($check_version["error"] == "1")
+		{
+			record_log("note", "UPDATE CHECK ERROR: " . $check_version["response"]);
+		} else
+		{
+			if (($config["check_version"] == $check_version["version_status"]) || (($config["check_version"] == "2") &&
+				($check_version["version_status"] == "1")))
+			{
+				record_log("note", "UPDATE CHECK: " . $check_version["response"]);
+				if ((!isset($config["skip_update"])) || ($config["skip_update"] != "1"))
+				{
+					$update_script = update_script($check_version["hash"]);
+                    if($update_script["error"] == "1"){
+                        record_log("note", "UPDATE SCRIPT ERROR: " . $update_script["response"]);
+                    }else{
+                        record_log("note", "UPDATE SCRIPT: " . $update_script["response"]);
+                    }
+				}
+			}
+		}
+	}
 
-
-    $save_status = update_status($generate_account_list["account_list"], $generate_account_list["log_file"],
-        $config_name);
-    if ($save_status["error"] == "1")
-        record_log("note", "(Generation) ERROR: " . $save_status["response"], true);
-    record_log("note", "Accounts To Be Backed Up: " . implode(", ", $generate_account_list["account_list"]), false);
-    if (count($generate_account_list["account_excluded"]) > 0)
-        record_log("note", "Accounts Excluded From Backup By Config: " . implode(", ", $generate_account_list["account_excluded"]), false);
-    if (count($generate_account_list["account_suspended"]) > 0)
-        record_log("note", "Accounts Excluded From Backup Due To Being Suspended: " .
-            implode(", ", $generate_account_list["account_suspended"]), false);
-    exit();
+	$save_status = update_status($generate_account_list["account_list"], $generate_account_list["log_file"], $config_name);
+	if ($save_status["error"] == "1")
+		record_log("note", "(Generation) ERROR: " . $save_status["response"], true);
+	record_log("note", "Accounts To Be Backed Up: " . implode(", ", $generate_account_list["account_list"]), false);
+	if (count($generate_account_list["account_excluded"]) > 0)
+		record_log("note", "Accounts Excluded From Backup By Config: " . implode(", ", $generate_account_list["account_excluded"]), false);
+	if (count($generate_account_list["account_suspended"]) > 0)
+		record_log("note", "Accounts Excluded From Backup Due To Being Suspended: " . implode(", ", $generate_account_list["account_suspended"]), false);
+	exit();
 }
 
-if (($generate == true) && ($retrieve_status["status"] == "1")) {
-    echo "Backup Already Started. To Generate A New Backup Use Force Variable.";
+if (($generate == true) && ($retrieve_status["status"] == "1"))
+{
+	echo "Backup Already Started. To Generate A New Backup Use Force Variable.";
 }
 
-if (($generate == false) && ($retrieve_status["status"] == "0")) {
-    echo "No Backups Required.";
+if (($generate == false) && ($retrieve_status["status"] == "0"))
+{
+	echo "No Backups Required.";
 }
 
 // Generate Variable Not Set, Backup Already Started, Accounts Remaining To Backup.
-if (($generate == false) && ($retrieve_status["status"] == "1")) {
-    $backup_accounts = backup_accounts($retrieve_status["account_list"]);
-    $account = $retrieve_status["account_list"][0];
-    //$retrieve_status["account_list"] = array_values($retrieve_status["account_list"]);
-    unset($retrieve_status["account_list"][0]);
-    $save_status = update_status(array_values($retrieve_status["account_list"]), $retrieve_status["log_file"],
-        $config_name);
+if (($generate == false) && ($retrieve_status["status"] == "1"))
+{
+	$backup_accounts = backup_accounts($retrieve_status["account_list"]);
+	$account = $retrieve_status["account_list"][0];
+	//$retrieve_status["account_list"] = array_values($retrieve_status["account_list"]);
+	unset($retrieve_status["account_list"][0]);
+	$save_status = update_status(array_values($retrieve_status["account_list"]), $retrieve_status["log_file"], $config_name);
 
-    if (($backup_accounts["error"] == "0") && (!empty($config["backup_email"])))
-        record_log("note", "(" . $account .
-            ") Backup Initiated. For More Details See The Backup Email For This Account.", true);
+	if (($backup_accounts["error"] == "0") && (!empty($config["backup_email"])))
+		record_log("note", "(" . $account .
+			") Backup Initiated. For More Details See The Backup Email For This Account.", true);
 
-    if (($backup_accounts["error"] == "0") && (empty($config["backup_email"])))
-        record_log("note", "(" . $account . ") Backup Initiated.", true);
+	if (($backup_accounts["error"] == "0") && (empty($config["backup_email"])))
+		record_log("note", "(" . $account . ") Backup Initiated.", true);
 
-    record_log("note", "(" . $account . ") ERROR: " . $backup_accounts["response"], true);
+	record_log("note", "(" . $account . ") ERROR: " . $backup_accounts["response"], true);
 }
 
 // Generate Variable Not Set, Backup Already Started, All Accounts Backed Up, Send Log File in Email.
-if (($generate == false) && ($retrieve_status["status"] == "2")) {
-    if (!empty($config['backup_email'])) {
-        $email_log = email_log("Reseller Backup Log (WHM Backup Solutions)",
-            "The backup of \"" . $config['whm_username'] . "\" has been completed. The log of backup initiation is available below.\r\n");
-        if ($email_log["error"] == "0") {
-            record_log("note", "Log File Successfully Sent To " . $config["backup_email"]);
-        } else {
-            record_log("note", $email_log["response"], true);
-        }
-    } else {
-        record_log("note", "Log File Completed.");
-    }
-    $update_status = update_status(array(), "", $config_name);
+if (($generate == false) && ($retrieve_status["status"] == "2"))
+{
+	if (!empty($config['backup_email']))
+	{
+		$email_log = email_log("Reseller Backup Log (WHM Backup Solutions)", "The backup of \"" . $config['whm_username'] .
+			"\" has been completed. The log of backup initiation is available below.\r\n");
+		if ($email_log["error"] == "0")
+		{
+			record_log("note", "Log File Successfully Sent To " . $config["backup_email"]);
+		} else
+		{
+			record_log("note", $email_log["response"], true);
+		}
+	} else
+	{
+		record_log("note", "Log File Completed.");
+	}
+	$update_status = update_status(array(), "", $config_name);
 }
 
 ?>
