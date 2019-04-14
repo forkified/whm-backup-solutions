@@ -33,6 +33,9 @@ $config['obfuscate_config'] = FALSE;
 // 1 - Notify of Major Update.
 // 2 - Notify of Major & Minor Updates. 
 $config['check_version'] = '2';
+// Checking for updates will also enable automatic script upgrading.
+// To disable automatic script updates uncomment the line below.
+// $config["skip_update"] = '1';
 
 // $config['whm_hostname']
 // This is the hostname or ip address of the cPanel server your reseller is hosted on.
