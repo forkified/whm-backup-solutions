@@ -606,15 +606,68 @@ function backup_accounts($account_list)
 
 	}
 
-	$result = json_decode($xmlapi->api1_query($account_list[0], 'Fileman', 'fullbackup', $api_args), true);
+    $result_version = json_decode($xmlapi->version(), true);
+    if(($result_version["version"] >= "11.78") || (isset($config["force_version"]) && ($config["force_version"] == "3"))){
+        // Newer Than 11.78
+        if($config['backup_destination'] == "homedir"){
+            $uapi_function = "fullbackup_to_homedir";
+            $uapi_params["email"] = $config['backup_email'];
+        }else if($config['backup_destination'] == "ftp"){
+            $uapi_function = "fullbackup_to_ftp";
+		    $uapi_params["variant"] = "active";
+            $uapi_params["host"] = $config['backup_hostname']; // Destination Hostname
+            $uapi_params["username"] = $config['backup_user']; // FTP/SCP Username
+            $uapi_params["password"] = $config['backup_pass']; // FTP/SCP Password
+            $uapi_params["email"] = $config['backup_email']; // Backup Email Address
+            $uapi_params["port"] = $config['backup_port']; // Destination Port
+            $uapi_params["directory"] = $remote_dir; // Remote Path To Storage Directory            
+        }else if($config['backup_destination'] == "passiveftp"){
+		    $uapi_function = "fullbackup_to_ftp";
+            $uapi_params["variant"] = "passive";
+            $uapi_params["host"] = $config['backup_hostname']; // Destination Hostname
+            $uapi_params["username"] = $config['backup_user']; // FTP/SCP Username
+            $uapi_params["password"] = $config['backup_pass']; // FTP/SCP Password
+            $uapi_params["email"] = $config['backup_email']; // Backup Email Address
+            $uapi_params["port"] = $config['backup_port']; // Destination Port
+            $uapi_params["directory"] = $remote_dir; // Remote Path To Storage Directory            
+        }else if($config['backup_destination'] == "scp"){
+            if(((!isset($config["key_name"])) || (empty($config["key_name"])))){
+                $uapi_function = "fullbackup_to_scp_with_password";
+                $uapi_params["username"] = $config['backup_user'];
+                $uapi_params["password"] = $config['backup_pass'];
+            }else{
+                $uapi_function = "fullbackup_to_scp_with_key";
+                $uapi_params["key_name"] = $config['backup_scp_key_name'];
+                $uapi_params["key_passphrase"] = $config['backup_scp_key_name'];
+            }
+            $uapi_params["host"] = $config['backup_hostname']; // Destination Hostname
+            $uapi_params["port"] = $config['backup_port']; // Destination Port
+            $uapi_params["email"] = $config['backup_email']; // Backup Email Address
+            $uapi_params["directory"] = $remote_dir; // Remote Path To Storage Directory            
+        }
+        $result = json_decode($xmlapi->uapi_query($account_list[0], 'Backup', $uapi_function, $uapi_params), true);
+    }else if(($result_version["version"] < "11.78") || (isset($config["force_version"]) && ($config["force_version"] == "1"))){
+        // Older Than 11.78
+        $result = json_decode($xmlapi->api1_query($account_list[0], 'Fileman', 'fullbackup', $api_args), true);
+    }else{
+        return array("error" => "1", "response" => "Unable To Determinate Backup Version.");
+    }
+    
+    // UAPI Version
+    if (isset($result["result"]["errors"][0]))
+		return array("error" => "1", "response" => $result["result"]["errors"][0]);
+    if (isset($result["result"]["warnings"][0]))
+		return array("error" => "1", "response" => $result["result"]["warnings"][0]);
+    return array("error" => "0", "response" => "UAPI Backup Success", "pid" => $result["result"]["data"]["pid"]);
+    
+    // cPanel Version 1
 	if (isset($result["cpanelresult"]["data"]["reason"]))
 		return array("error" => "1", "response" => $result["cpanelresult"]["data"]["reason"]);
 	if ((isset($result["cpanelresult"]["event"]["reason"])) && (!empty($result["cpanelresult"]["event"]["reason"])))
 		return array("error" => "1", "response" => $result["cpanelresult"]["event"]["reason"]);
 	if ($result["data"]["result"] == "0")
 		return array("error" => "1", "response" => $result["data"]["reason"]);
-
-	return array("error" => "0", "response" => "");
+	return array("error" => "0", "response" => "API1 Backup Success");
 }
 
 /**
