@@ -131,7 +131,7 @@ if ((($generate == true) && ($retrieve_status["status"] == "1") && ($force == tr
     
     $cpanel_version = json_decode($xmlapi->version(), true);
 
-    if($cpanel_version["status"] == "0") $cpanel_version["version"] = $cpanel_version["statusmsg"];
+    if((isset($cpanel_version["status"])) && ($cpanel_version["status"] == "0")) $cpanel_version["version"] = $cpanel_version["statusmsg"];
     record_log("note", $config['whm_username'] . "@" . $config['whm_hostname'] . ", cPanel Version: " . $cpanel_version["version"]);
     
 	if ($generate_account_list["error"] == "1")
