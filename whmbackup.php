@@ -116,7 +116,7 @@ try
 }
 catch (exception $e)
 {
-	record_log("system", "XML-API Error: " . $e->getMessage(), true);
+	record_log("system", "cPanel API Error: " . $e->getMessage(), true);
 }
 
 // Generate Variable Set, If Backup Already Started & Force Variable Set OR If Backup Not Already Started, Generate Account List
@@ -128,6 +128,12 @@ if ((($generate == true) && ($retrieve_status["status"] == "1") && ($force == tr
 	// Generate Account List
 	$generate_account_list = generate_account_list();
 	$log_file = $generate_account_list["log_file"];
+    
+    $cpanel_version = json_decode($xmlapi->version(), true);
+
+    if((isset($cpanel_version["status"])) && ($cpanel_version["status"] == "0")) $cpanel_version["version"] = $cpanel_version["statusmsg"];
+    record_log("note", $config['whm_username'] . "@" . $config['whm_hostname'] . ", cPanel Version: " . $cpanel_version["version"]);
+    
 	if ($generate_account_list["error"] == "1")
 		record_log("note", "(Generation) ERROR: " . $generate_account_list["response"], true);
 
@@ -187,12 +193,23 @@ if (($generate == false) && ($retrieve_status["status"] == "1"))
 	unset($retrieve_status["account_list"][0]);
 	$save_status = update_status(array_values($retrieve_status["account_list"]), $retrieve_status["log_file"], $config_name);
 
-	if (($backup_accounts["error"] == "0") && (!empty($config["backup_email"])))
-		record_log("note", "(" . $account .
+	if (($backup_accounts["error"] == "0") && (!empty($config["backup_email"]))){
+        if(isset($backup_accounts["pid"])){
+            record_log("note", "(" . $account .
+			") Backup Initiated (PID: " . $backup_accounts["pid"] . "). For More Details See The Backup Email For This Account.", true);
+        }else{
+            record_log("note", "(" . $account .
 			") Backup Initiated. For More Details See The Backup Email For This Account.", true);
+        }
+    }
 
-	if (($backup_accounts["error"] == "0") && (empty($config["backup_email"])))
-		record_log("note", "(" . $account . ") Backup Initiated.", true);
+	if (($backup_accounts["error"] == "0") && (empty($config["backup_email"]))){
+        if(isset($backup_accounts["pid"])){
+            record_log("note", "(" . $account . ") Backup Initiated (PID: " . $backup_accounts["pid"] . ").", true);
+        }else{
+            record_log("note", "(" . $account . ") Backup Initiated.", true);
+        }
+    }
 
 	record_log("note", "(" . $account . ") ERROR: " . $backup_accounts["response"], true);
 }

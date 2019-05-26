@@ -75,7 +75,7 @@ $config['type_of_backup'] = '';
 $config['backup_criteria'] = '';
 
 // $config['backup_exclusions']
-// You can exclude accounts from being backed up by entering their usernames in the field below.
+// You can exclude accounts from being backed up by entering their usernames seperated by commans in the field below.
 $config['backup_exclusions'] = '';
 
 // $config['backup_email']
@@ -95,7 +95,9 @@ $config['backup_destination'] = '';
 // ======================================
 // FTP, PASSIVEFTP OR SCP Only
 // ======================================
-// Configuration fields past this point will be ignored unless ftp, passiveftp or scp are selected. 
+// Configuration fields past this point will be ignored unless ftp, passiveftp or scp are selected.
+// If cPanel version is above 11.78. SSH keys with SCP can be used. For more information visit
+// https://whmbackup.solutions/documentation/configuration/ 
 
 // $config['backup_server']
 // The hostname/ip address of your remote FTP or SCP storage.

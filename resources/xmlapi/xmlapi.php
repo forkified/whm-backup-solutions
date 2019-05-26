@@ -915,6 +915,47 @@ class xmlapi
         return $this->xmlapi_query('cpanel', $args);
     }
 
+    /**
+    * Call an UAPI Function
+    *
+    * This function allows you to call an UAPI function
+    *
+    * @param string $user The username of the account to perform UAPI actions on
+    * @param string $module The module of the UAPI call to use
+    * @param string $function The function of the UAPI call
+    * @param array $args An associative array containing the arguments for the UAPI call
+    * @return mixed
+    */
+
+    public function uapi_query($user, $module, $function, $args = array())
+    {
+        if (!isset($user) || !isset($module) || !isset($function) ) {
+            error_log("uapi_query requires that a username, module and function are passed to it");
+
+            return false;
+        }
+        if (!is_array($args)) {
+            error_log("uapi_query requires that an array is passed to it as the 4th parameter");
+
+            return false;
+        }
+
+
+        $cpuser = 'cpanel_jsonapi_user';
+        $module_type = 'cpanel_jsonapi_module';
+        $func_type = 'cpanel_jsonapi_func';
+        $api_type = 'cpanel_jsonapi_apiversion';
+
+
+        $args[$cpuser] = $user;
+        $args[$module_type] = $module;
+        $args[$func_type] = $function;
+        $args[$api_type] = '3';
+
+        return $this->xmlapi_query('cpanel', $args);
+    }
+
+
     ####
     #  XML API Functions
     ####
@@ -2465,6 +2506,6 @@ class xmlapi
         }
 
         return $this->api2_query($username, 'StatsBar', 'stat', $values);
-    }
+    } 
 
 }
