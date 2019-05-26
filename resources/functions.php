@@ -638,7 +638,7 @@ function backup_accounts($account_list)
             }else{
                 $uapi_function = "fullbackup_to_scp_with_key";
                 $uapi_params["key_name"] = $config['backup_scp_key_name'];
-                $uapi_params["key_passphrase"] = $config['backup_scp_key_name'];
+                $uapi_params["key_passphrase"] = $config['backup_scp_key_passphrase'];
             }
             $uapi_params["host"] = $config['backup_hostname']; // Destination Hostname
             $uapi_params["port"] = $config['backup_port']; // Destination Port
