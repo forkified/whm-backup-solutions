@@ -75,7 +75,7 @@ $config['type_of_backup'] = '';
 $config['backup_criteria'] = '';
 
 // $config['backup_exclusions']
-// You can exclude accounts from being backed up by entering their usernames in the field below.
+// You can exclude accounts from being backed up by entering their usernames seperated by commans in the field below.
 $config['backup_exclusions'] = '';
 
 // $config['backup_email']
