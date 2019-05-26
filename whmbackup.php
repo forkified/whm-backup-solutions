@@ -116,7 +116,7 @@ try
 }
 catch (exception $e)
 {
-	record_log("system", "XML-API Error: " . $e->getMessage(), true);
+	record_log("system", "cPanel API Error: " . $e->getMessage(), true);
 }
 
 // Generate Variable Set, If Backup Already Started & Force Variable Set OR If Backup Not Already Started, Generate Account List
@@ -130,6 +130,8 @@ if ((($generate == true) && ($retrieve_status["status"] == "1") && ($force == tr
 	$log_file = $generate_account_list["log_file"];
     
     $cpanel_version = json_decode($xmlapi->version(), true);
+
+    if($cpanel_version["status"] == "0") $cpanel_version["version"] = $cpanel_version["statusmsg"];
     record_log("note", $config['whm_username'] . "@" . $config['whm_hostname'] . ", cPanel Version: " . $cpanel_version["version"]);
     
 	if ($generate_account_list["error"] == "1")
