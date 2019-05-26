@@ -95,7 +95,9 @@ $config['backup_destination'] = '';
 // ======================================
 // FTP, PASSIVEFTP OR SCP Only
 // ======================================
-// Configuration fields past this point will be ignored unless ftp, passiveftp or scp are selected. 
+// Configuration fields past this point will be ignored unless ftp, passiveftp or scp are selected.
+// If cPanel version is above 11.78. SSH keys with SCP can be used. For more information visit
+// https://whmbackup.solutions/documentation/configuration/ 
 
 // $config['backup_server']
 // The hostname/ip address of your remote FTP or SCP storage.
