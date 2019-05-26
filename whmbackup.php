@@ -196,7 +196,7 @@ if (($generate == false) && ($retrieve_status["status"] == "1"))
 	if (($backup_accounts["error"] == "0") && (!empty($config["backup_email"]))){
         if(isset($backup_accounts["pid"])){
             record_log("note", "(" . $account .
-			") Backup Initiated (" . $backup_accounts["pid"] . "). For More Details See The Backup Email For This Account.", true);
+			") Backup Initiated (PID: " . $backup_accounts["pid"] . "). For More Details See The Backup Email For This Account.", true);
         }else{
             record_log("note", "(" . $account .
 			") Backup Initiated. For More Details See The Backup Email For This Account.", true);
@@ -205,7 +205,7 @@ if (($generate == false) && ($retrieve_status["status"] == "1"))
 
 	if (($backup_accounts["error"] == "0") && (empty($config["backup_email"]))){
         if(isset($backup_accounts["pid"])){
-            record_log("note", "(" . $account . ") Backup Initiated (" . $backup_accounts["pid"] . ").", true);
+            record_log("note", "(" . $account . ") Backup Initiated (PID: " . $backup_accounts["pid"] . ").", true);
         }else{
             record_log("note", "(" . $account . ") Backup Initiated.", true);
         }
