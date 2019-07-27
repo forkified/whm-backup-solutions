@@ -100,7 +100,6 @@ function update_script($hash)
 	$fp = fopen($directory . 'update.zip', 'w+');
 	curl_setopt($curl, CURLOPT_FILE, $fp);
     curl_setopt($curl, CURLOPT_HTTPHEADER, array('Script-Version: ' . $version));
-	curl_setopt($curl, CURLOPT_HTTPHEADER, array('Auto Update: Yes'));
 	curl_setopt($curl, CURLOPT_TIMEOUT, 180);
 	curl_exec($curl);
 	curl_close($curl);
