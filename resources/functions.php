@@ -99,6 +99,7 @@ function update_script($hash)
 	curl_setopt($curl, CURLOPT_URL, 'https://whmbackup.solutions/download-latest-version/');
 	$fp = fopen($directory . 'update.zip', 'w+');
 	curl_setopt($curl, CURLOPT_FILE, $fp);
+    curl_setopt($curl, CURLOPT_HTTPHEADER, array('Script-Version: ' . $version));
 	curl_setopt($curl, CURLOPT_HTTPHEADER, array('Auto Update: Yes'));
 	curl_setopt($curl, CURLOPT_TIMEOUT, 180);
 	curl_exec($curl);
