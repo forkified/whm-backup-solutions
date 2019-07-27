@@ -87,7 +87,7 @@ function check_version()
 
 function update_script($hash)
 {
-	global $directory, $config;
+	global $directory, $config, $version;
 	$curl = curl_init();
 
 	if (file_exists($directory . "update.zip"))
