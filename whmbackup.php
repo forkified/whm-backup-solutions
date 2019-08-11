@@ -37,6 +37,7 @@ $generate = null;
 $force = null;
 $config_name = null;
 
+// Check if script run via command line or web browser.
 if ((PHP_SAPI == 'cli'))
 {
 	foreach ($argv as $arg)
@@ -47,11 +48,13 @@ if ((PHP_SAPI == 'cli'))
 
 }
 
+// Check if script variables are set in $_GET.
 $generate = array_key_exists("generate", $_GET);
 $force = array_key_exists("force", $_GET);
 if (array_key_exists("config", $_GET))
 	$config_name = $_GET["config"];
 
+// Include Config File
 $include_config = include_config($config_name);
 if ($include_config["error"])
 	record_log("system", $include_config["response"], true);
@@ -109,7 +112,7 @@ try
 			record_log("system", "Invalid Authentication Type, Set &#36;config[\"whm_auth\"] to either password or hash.", true);
 		}
 
-		$xmlapi->set_output('json');
+	$xmlapi->set_output('json');
 	$xmlapi->set_debug(0);
 
 

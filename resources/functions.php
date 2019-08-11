@@ -27,7 +27,7 @@
  * @filename    functions.php
  */
 
-$version = "0.11";
+$version = "0.12";
 
 /**
  * @name        check_version
@@ -87,7 +87,7 @@ function check_version()
 
 function update_script($hash)
 {
-	global $directory, $config;
+	global $directory, $config, $version;
 	$curl = curl_init();
 
 	if (file_exists($directory . "update.zip"))
@@ -99,7 +99,7 @@ function update_script($hash)
 	curl_setopt($curl, CURLOPT_URL, 'https://whmbackup.solutions/download-latest-version/');
 	$fp = fopen($directory . 'update.zip', 'w+');
 	curl_setopt($curl, CURLOPT_FILE, $fp);
-	curl_setopt($curl, CURLOPT_HTTPHEADER, array('Auto Update: Yes'));
+    curl_setopt($curl, CURLOPT_HTTPHEADER, array('Script-Version: ' . $version));
 	curl_setopt($curl, CURLOPT_TIMEOUT, 180);
 	curl_exec($curl);
 	curl_close($curl);
@@ -470,12 +470,12 @@ function generate_account_list()
 	{
 		// Retrieve WHM Account List
 		$xmlapi_listaccts = json_decode($xmlapi->listaccts(), true);
-		if (empty($xmlapi_listaccts["status"]))
+		if ((isset($xmlapi_listaccts["status"])) && (empty($xmlapi_listaccts["status"])))
 			return array(
 				"error" => "1",
 				"response" => "List Account - " . $xmlapi_listaccts["statusmsg"],
 				"log_file" => "backup-" . date("YmdHis", time()) . ".log");
-		if (isset($xmlapi_listaccts["cpanelresult"]["data"]["reason"]))
+        if ((isset($xmlapi_listaccts["cpanelresult"]["data"]["reason"])) && (empty($xmlapi_listaccts["cpanelresult"]["data"]["reason"])))
 			return array(
 				"error" => "1",
 				"response" => "List Account - " . $xmlapi_listaccts["cpanelresult"]["data"]["reason"],
