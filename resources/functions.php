@@ -468,8 +468,33 @@ function generate_account_list()
 
 	try
 	{
+        // Check Privileges
+        $myprivs = json_decode($xmlapi->xmlapi_query('myprivs'), true);
+        if((isset($myprivs["cpanelresult"]["error"])) && ($myprivs["cpanelresult"]["error"] = "Access denied"))
+            return array(
+				"error" => "1",
+				"response" => "Authentication Access Denied. Check The Details Entered Into Your Configuration File.",
+				"log_file" => "backup-" . date("YmdHis", time()) . ".log");
+            
+        if((!isset($myprivs["privs"])) || (!is_array($myprivs["privs"]))) return array(
+				"error" => "1",
+				"response" => "'basic-whm-functions' Privileges Not Granted. Unable To Check If Required Privileges Are Granted.",
+				"log_file" => "backup-" . date("YmdHis", time()) . ".log");
+        
+        $required_privilages = array("basic-whm-functions", "list-accts", "basic-system-info", "cpanel-api");
+        $missing_priv = "";
+        foreach($required_privilages as $rp){
+            if($myprivs["privs"][$rp] != "1") $missing_priv .= $rp . ", ";
+        }
+        
+        if(!empty($missing_priv)) return array(
+				"error" => "1",
+				"response" => "The API Access Privileges (" . $missing_priv . ") Are Not Granted. To Continue Please Grant These Privileges In Your Reseller Account.",
+				"log_file" => "backup-" . date("YmdHis", time()) . ".log");       
+       
 		// Retrieve WHM Account List
 		$xmlapi_listaccts = json_decode($xmlapi->listaccts(), true);
+        
 		if ((isset($xmlapi_listaccts["status"])) && (empty($xmlapi_listaccts["status"])))
 			return array(
 				"error" => "1",
