@@ -703,14 +703,17 @@ function backup_accounts($account_list)
  * @global      $directory      (string)   Directory of script.
  * @param       $subject        (string)   The subject of the email being sent.
  * @param       $message        (string)   The message of the email being sent.
+ * @param       $system_log     (boolean)  If specified to TRUE, the system.log will be sent instead.
  * @return      (array) error - Boolean 1 or 0,
  *                      response - Error Message (if applicable).
  */
-function email_log($subject, $message)
+function email_log($subject, $message, $system_log = FALSE)
 {
 	global $log_file, $config, $directory;
 	$log_directory = $directory . "logs" . DIRECTORY_SEPARATOR;
-	$file_name = $log_directory . $log_file;
+    $file_name = $log_directory . $log_file;
+    if($system_log == TRUE) $file_name = $log_directory . "system.log";
+	
 	if (empty($log_file))
 		return array("error" => "1", "response" => "Unable To Send Notification Email, Log File Not Specified.");
 
