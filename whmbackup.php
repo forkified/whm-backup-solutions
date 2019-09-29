@@ -92,8 +92,19 @@ foreach ($config_variables as $var)
 
 // Retrieve Backup Status
 $retrieve_status = retrieve_status($config_name);
-if ($retrieve_status["error"] == "1")
-	record_log("system", $retrieve_status["response"], true);
+if ($retrieve_status["error"] == "1"){
+	record_log("system", $retrieve_status["response"]);
+    $email_log = email_log("ERROR - Reseller Backup Log (WHM Backup Solutions)", "The backup of \"" . $config['whm_username'] .
+			"\" has an error that required attention. The log of backup initiation is available below.\r\n", TRUE);
+	if ($email_log["error"] == "0")
+	{
+		record_log("note", "Log File Successfully Sent To " . $config["backup_email"]);
+	} else
+	{
+		record_log("note", $email_log["response"], true);
+	}
+    exit();
+}
 
 $log_file = $retrieve_status["log_file"];
 
@@ -109,7 +120,17 @@ try
 			$xmlapi->hash_auth($config["whm_username"], $config["whm_auth_key"]);
 		} else
 		{
-			record_log("system", "Invalid Authentication Type, Set &#36;config[\"whm_auth\"] to either password or hash.", true);
+			record_log("system", "Invalid Authentication Type, Set &#36;config[\"whm_auth\"] to either password or hash.");
+            $email_log = email_log("ERROR - Reseller Backup Log (WHM Backup Solutions)", "The backup of \"" . $config['whm_username'] .
+			"\" has an error that required attention. The log of backup initiation is available below.\r\n", TRUE);
+            if ($email_log["error"] == "0")
+            {
+                record_log("note", "Log File Successfully Sent To " . $config["backup_email"]);
+            } else
+            {
+                record_log("note", $email_log["response"], true);
+            }
+            exit();
 		}
 
 	$xmlapi->set_output('json');
@@ -247,7 +268,17 @@ if (($generate == false) && ($retrieve_status["status"] == "2"))
 }
 catch (exception $e)
 {
-	record_log("system", "cPanel API Error: " . $e->getMessage(), true);
+	record_log("system", "cPanel API Error: " . $e->getMessage());
+    $email_log = email_log("ERROR - Reseller Backup Log (WHM Backup Solutions)", "The backup of \"" . $config['whm_username'] .
+			"\" has an error that required attention. The log of backup initiation is available below.\r\n", TRUE);
+	if ($email_log["error"] == "0")
+	{
+		record_log("note", "Log File Successfully Sent To " . $config["backup_email"]);
+	} else
+	{
+		record_log("note", $email_log["response"], true);
+	}
+    exit();
 }
 
 ?>
