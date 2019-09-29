@@ -115,13 +115,6 @@ try
 	$xmlapi->set_output('json');
 	$xmlapi->set_debug(0);
 
-
-}
-catch (exception $e)
-{
-	record_log("system", "cPanel API Error: " . $e->getMessage(), true);
-}
-
 // Generate Variable Set, If Backup Already Started & Force Variable Set OR If Backup Not Already Started, Generate Account List
 if ((($generate == true) && ($retrieve_status["status"] == "1") && ($force == true)) || (($generate == true) &&
 	($retrieve_status["status"] != "1")))
@@ -139,8 +132,19 @@ if ((($generate == true) && ($retrieve_status["status"] == "1") && ($force == tr
     if((isset($cpanel_version["status"])) && ($cpanel_version["status"] == "0")) $cpanel_version["version"] = $cpanel_version["statusmsg"];
     record_log("note", $config['whm_username'] . "@" . $config['whm_hostname'] . ", cPanel Version: " . $cpanel_version["version"]);
     
-	if ($generate_account_list["error"] == "1")
-		record_log("note", "(Generation) ERROR: " . $generate_account_list["response"], true);
+	if ($generate_account_list["error"] == "1"){
+		record_log("note", "(Generation) ERROR: " . $generate_account_list["response"]);
+        $email_log = email_log("ERROR - Reseller Backup Log (WHM Backup Solutions)", "The backup of \"" . $config['whm_username'] .
+			"\" has an error that required attention. The log of backup initiation is available below.\r\n");
+		if ($email_log["error"] == "0")
+		{
+			record_log("note", "Log File Successfully Sent To " . $config["backup_email"]);
+		} else
+		{
+			record_log("note", $email_log["response"], true);
+		}
+        exit();
+    }
 
 	// Check For New Version
 	if ($config["check_version"] != '0')
@@ -238,6 +242,12 @@ if (($generate == false) && ($retrieve_status["status"] == "2"))
 		record_log("note", "Log File Completed.");
 	}
 	$update_status = update_status(array(), "", $config_name);
+}
+
+}
+catch (exception $e)
+{
+	record_log("system", "cPanel API Error: " . $e->getMessage(), true);
 }
 
 ?>
