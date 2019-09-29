@@ -126,6 +126,7 @@ catch (exception $e)
 if ((($generate == true) && ($retrieve_status["status"] == "1") && ($force == true)) || (($generate == true) &&
 	($retrieve_status["status"] != "1")))
 {
+    
 	$update_status = update_status(array(), "", $config_name);
 
 	// Generate Account List
@@ -133,6 +134,7 @@ if ((($generate == true) && ($retrieve_status["status"] == "1") && ($force == tr
 	$log_file = $generate_account_list["log_file"];
     
     $cpanel_version = json_decode($xmlapi->version(), true);
+    if(!isset($cpanel_version["version"])) $cpanel_version["version"] = "Error";
 
     if((isset($cpanel_version["status"])) && ($cpanel_version["status"] == "0")) $cpanel_version["version"] = $cpanel_version["statusmsg"];
     record_log("note", $config['whm_username'] . "@" . $config['whm_hostname'] . ", cPanel Version: " . $cpanel_version["version"]);
