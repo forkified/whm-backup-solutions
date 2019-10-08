@@ -473,7 +473,7 @@ function generate_account_list()
         if((isset($myprivs["cpanelresult"]["error"])) && ($myprivs["cpanelresult"]["error"] = "Access denied"))
             return array(
 				"error" => "1",
-				"response" => "Authentication Access Denied. Check The Details Entered Into Your Configuration File.",
+				"response" => "Unable To Verify Reseller Privileges. Authentication Access Denied. Check The Details Entered Into Your Configuration File.",
 				"log_file" => "backup-" . date("YmdHis", time()) . ".log");
             
         if((!isset($myprivs["privs"])) || (!is_array($myprivs["privs"]))) return array(
