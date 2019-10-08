@@ -68,19 +68,37 @@ function check_version()
 			"response" => "This Script Is Running The Latest Version.",
 			"version_status" => "0"); // Up To Date
 
-	if ($script_version["0"] < $data["version_major"])
+	if (($script_version["0"] > $data["version_major"]))
 	{
 		return array(
 			"error" => "0",
-			"response" => "This Script Is Running A Major Version Out Of Date.",
+			"response" => "This Script Is Running (V" . $script_version["0"] . "." . $script_version["1"] . ") A Newer Major Version Than The Official Release (V" . $data["version_major"] . "." . $data["version_minor"] . ").",
+			"version_status" => "1",
+            "hash" => $data["hash"]); // Newer - Major Version
+	}
+    
+    if (($script_version["0"] == $data["version_major"]) && ($script_version["1"] > $data["version_minor"]))
+	{
+		return array(
+			"error" => "0",
+            "response" => "This Script Is Running (V" . $script_version["0"] . "." . $script_version["1"] . ") A Newer Minor Version Than The Official Release (V" . $data["version_major"] . "." . $data["version_minor"] . ").",
+			"version_status" => "1",
+            "hash" => $data["hash"]); // Newer - Minor Version
+	}
+    
+    if ($script_version["0"] < $data["version_major"])
+	{
+		return array(
+			"error" => "0",
+            "response" => "This Script Is Running (V" . $script_version["0"] . "." . $script_version["1"] . ") A Major Version Older Than The Official Release (V" . $data["version_major"] . "." . $data["version_minor"] . ").",
 			"version_status" => "1",
             "hash" => $data["hash"]); // Out Of Date - Major Version
 	}
 
-	if ($script_version["1"] < $data["version_minor"])
+	if (($script_version["0"] == $data["version_major"]) && ($script_version["1"] < $data["version_minor"]))
 		return array(
 			"error" => "0",
-			"response" => "This Script Is Running A Minor Version Out Of Date.",
+            "response" => "This Script Is Running (V" . $script_version["0"] . "." . $script_version["1"] . ") A Minor Version Older Than The Official Release (V" . $data["version_major"] . "." . $data["version_minor"] . ").",
 			"version_status" => "2",
             "hash" => $data["hash"]); // Out Of Date - Minor Version
 }
