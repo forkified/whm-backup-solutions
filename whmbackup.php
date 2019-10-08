@@ -92,8 +92,19 @@ foreach ($config_variables as $var)
 
 // Retrieve Backup Status
 $retrieve_status = retrieve_status($config_name);
-if ($retrieve_status["error"] == "1")
-	record_log("system", $retrieve_status["response"], true);
+if ($retrieve_status["error"] == "1"){
+	record_log("system", $retrieve_status["response"]);
+    $email_log = email_log("ERROR - Reseller Backup Log (WHM Backup Solutions)", "The backup of \"" . $config['whm_username'] .
+			"\" has an error that required attention. The log of backup initiation is available below.\r\n", TRUE);
+	if ($email_log["error"] == "0")
+	{
+		record_log("note", "Log File Successfully Sent To " . $config["backup_email"]);
+	} else
+	{
+		record_log("note", $email_log["response"], true);
+	}
+    exit();
+}
 
 $log_file = $retrieve_status["log_file"];
 
@@ -109,23 +120,27 @@ try
 			$xmlapi->hash_auth($config["whm_username"], $config["whm_auth_key"]);
 		} else
 		{
-			record_log("system", "Invalid Authentication Type, Set &#36;config[\"whm_auth\"] to either password or hash.", true);
+			record_log("system", "Invalid Authentication Type, Set &#36;config[\"whm_auth\"] to either password or hash.");
+            $email_log = email_log("ERROR - Reseller Backup Log (WHM Backup Solutions)", "The backup of \"" . $config['whm_username'] .
+			"\" has an error that required attention. The log of backup initiation is available below.\r\n", TRUE);
+            if ($email_log["error"] == "0")
+            {
+                record_log("note", "Log File Successfully Sent To " . $config["backup_email"]);
+            } else
+            {
+                record_log("note", $email_log["response"], true);
+            }
+            exit();
 		}
 
 	$xmlapi->set_output('json');
 	$xmlapi->set_debug(0);
 
-
-}
-catch (exception $e)
-{
-	record_log("system", "cPanel API Error: " . $e->getMessage(), true);
-}
-
 // Generate Variable Set, If Backup Already Started & Force Variable Set OR If Backup Not Already Started, Generate Account List
 if ((($generate == true) && ($retrieve_status["status"] == "1") && ($force == true)) || (($generate == true) &&
 	($retrieve_status["status"] != "1")))
 {
+    
 	$update_status = update_status(array(), "", $config_name);
 
 	// Generate Account List
@@ -133,12 +148,24 @@ if ((($generate == true) && ($retrieve_status["status"] == "1") && ($force == tr
 	$log_file = $generate_account_list["log_file"];
     
     $cpanel_version = json_decode($xmlapi->version(), true);
+    if(!isset($cpanel_version["version"])) $cpanel_version["version"] = "Error";
 
     if((isset($cpanel_version["status"])) && ($cpanel_version["status"] == "0")) $cpanel_version["version"] = $cpanel_version["statusmsg"];
     record_log("note", $config['whm_username'] . "@" . $config['whm_hostname'] . ", cPanel Version: " . $cpanel_version["version"]);
     
-	if ($generate_account_list["error"] == "1")
-		record_log("note", "(Generation) ERROR: " . $generate_account_list["response"], true);
+	if ($generate_account_list["error"] == "1"){
+		record_log("note", "(Generation) ERROR: " . $generate_account_list["response"]);
+        $email_log = email_log("ERROR - Reseller Backup Log (WHM Backup Solutions)", "The backup of \"" . $config['whm_username'] .
+			"\" has an error that required attention. The log of backup initiation is available below.\r\n");
+		if ($email_log["error"] == "0")
+		{
+			record_log("note", "Log File Successfully Sent To " . $config["backup_email"]);
+		} else
+		{
+			record_log("note", $email_log["response"], true);
+		}
+        exit();
+    }
 
 	// Check For New Version
 	if ($config["check_version"] != '0')
@@ -236,6 +263,22 @@ if (($generate == false) && ($retrieve_status["status"] == "2"))
 		record_log("note", "Log File Completed.");
 	}
 	$update_status = update_status(array(), "", $config_name);
+}
+
+}
+catch (exception $e)
+{
+	record_log("system", "cPanel API Error: " . $e->getMessage());
+    $email_log = email_log("ERROR - Reseller Backup Log (WHM Backup Solutions)", "The backup of \"" . $config['whm_username'] .
+			"\" has an error that required attention. The log of backup initiation is available below.\r\n", TRUE);
+	if ($email_log["error"] == "0")
+	{
+		record_log("note", "Log File Successfully Sent To " . $config["backup_email"]);
+	} else
+	{
+		record_log("note", $email_log["response"], true);
+	}
+    exit();
 }
 
 ?>

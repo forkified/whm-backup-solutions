@@ -27,7 +27,7 @@
  * @filename    functions.php
  */
 
-$version = "0.12";
+$version = "1.0";
 
 /**
  * @name        check_version
@@ -68,19 +68,37 @@ function check_version()
 			"response" => "This Script Is Running The Latest Version.",
 			"version_status" => "0"); // Up To Date
 
-	if ($script_version["0"] < $data["version_major"])
+	if (($script_version["0"] > $data["version_major"]))
 	{
 		return array(
 			"error" => "0",
-			"response" => "This Script Is Running A Major Version Out Of Date.",
+			"response" => "This Script Is Running (V" . $script_version["0"] . "." . $script_version["1"] . ") A Newer Major Version Than The Official Release (V" . $data["version_major"] . "." . $data["version_minor"] . ").",
+			"version_status" => "1",
+            "hash" => $data["hash"]); // Newer - Major Version
+	}
+    
+    if (($script_version["0"] == $data["version_major"]) && ($script_version["1"] > $data["version_minor"]))
+	{
+		return array(
+			"error" => "0",
+            "response" => "This Script Is Running (V" . $script_version["0"] . "." . $script_version["1"] . ") A Newer Minor Version Than The Official Release (V" . $data["version_major"] . "." . $data["version_minor"] . ").",
+			"version_status" => "1",
+            "hash" => $data["hash"]); // Newer - Minor Version
+	}
+    
+    if ($script_version["0"] < $data["version_major"])
+	{
+		return array(
+			"error" => "0",
+            "response" => "This Script Is Running (V" . $script_version["0"] . "." . $script_version["1"] . ") A Major Version Older Than The Official Release (V" . $data["version_major"] . "." . $data["version_minor"] . ").",
 			"version_status" => "1",
             "hash" => $data["hash"]); // Out Of Date - Major Version
 	}
 
-	if ($script_version["1"] < $data["version_minor"])
+	if (($script_version["0"] == $data["version_major"]) && ($script_version["1"] < $data["version_minor"]))
 		return array(
 			"error" => "0",
-			"response" => "This Script Is Running A Minor Version Out Of Date.",
+            "response" => "This Script Is Running (V" . $script_version["0"] . "." . $script_version["1"] . ") A Minor Version Older Than The Official Release (V" . $data["version_major"] . "." . $data["version_minor"] . ").",
 			"version_status" => "2",
             "hash" => $data["hash"]); // Out Of Date - Minor Version
 }
@@ -468,8 +486,33 @@ function generate_account_list()
 
 	try
 	{
+        // Check Privileges
+        $myprivs = json_decode($xmlapi->xmlapi_query('myprivs'), true);
+        if((isset($myprivs["cpanelresult"]["error"])) && ($myprivs["cpanelresult"]["error"] = "Access denied"))
+            return array(
+				"error" => "1",
+				"response" => "Unable To Verify Reseller Privileges. Authentication Access Denied. Check The Details Entered Into Your Configuration File.",
+				"log_file" => "backup-" . date("YmdHis", time()) . ".log");
+            
+        if((!isset($myprivs["privs"])) || (!is_array($myprivs["privs"]))) return array(
+				"error" => "1",
+				"response" => "'basic-whm-functions' Privileges Not Granted. Unable To Check If Required Privileges Are Granted.",
+				"log_file" => "backup-" . date("YmdHis", time()) . ".log");
+        
+        $required_privilages = array("basic-whm-functions", "list-accts", "basic-system-info", "cpanel-api");
+        $missing_priv = "";
+        foreach($required_privilages as $rp){
+            if($myprivs["privs"][$rp] != "1") $missing_priv .= $rp . ", ";
+        }
+        
+        if(!empty($missing_priv)) return array(
+				"error" => "1",
+				"response" => "The API Access Privileges (" . $missing_priv . ") Are Not Granted. To Continue Please Grant These Privileges In Your Reseller Account.",
+				"log_file" => "backup-" . date("YmdHis", time()) . ".log");       
+       
 		// Retrieve WHM Account List
 		$xmlapi_listaccts = json_decode($xmlapi->listaccts(), true);
+        
 		if ((isset($xmlapi_listaccts["status"])) && (empty($xmlapi_listaccts["status"])))
 			return array(
 				"error" => "1",
@@ -678,14 +721,17 @@ function backup_accounts($account_list)
  * @global      $directory      (string)   Directory of script.
  * @param       $subject        (string)   The subject of the email being sent.
  * @param       $message        (string)   The message of the email being sent.
+ * @param       $system_log     (boolean)  If specified to TRUE, the system.log will be sent instead.
  * @return      (array) error - Boolean 1 or 0,
  *                      response - Error Message (if applicable).
  */
-function email_log($subject, $message)
+function email_log($subject, $message, $system_log = FALSE)
 {
 	global $log_file, $config, $directory;
 	$log_directory = $directory . "logs" . DIRECTORY_SEPARATOR;
-	$file_name = $log_directory . $log_file;
+    $file_name = $log_directory . $log_file;
+    if($system_log == TRUE) $file_name = $log_directory . "system.log";
+	
 	if (empty($log_file))
 		return array("error" => "1", "response" => "Unable To Send Notification Email, Log File Not Specified.");
 
