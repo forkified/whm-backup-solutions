@@ -751,9 +751,9 @@ function email_log($subject, $message, $system_log = FALSE)
 	$message = $message . $contents; // Stop lines being longer than 70 characters.
 
 
-	if (mail($config["backup_email"], $subject, $message, "From: " . $config["backup_email"] . "\r\n") == false)
+	if ($mail = mail($config["backup_email"], $subject, $message, "From: " . $config["backup_email"] . "\r\n") == false)
 		return array("error" => "1", "response" =>
-				"Unable To Send Notification Email, An Error Occured While Trying To Send The Email.");
+				"Unable To Send Notification Email, The Following Error Occured While Trying To Send The Email (" . $mail . ").");
 
 	return array("error" => "0", "response" => "");
 }
