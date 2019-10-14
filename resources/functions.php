@@ -73,7 +73,7 @@ function check_version()
 		return array(
 			"error" => "0",
 			"response" => "This Script Is Running (V" . $script_version["0"] . "." . $script_version["1"] . ") A Newer Major Version Than The Official Release (V" . $data["version_major"] . "." . $data["version_minor"] . ").",
-			"version_status" => "1",
+			"version_status" => "0",
             "hash" => $data["hash"]); // Newer - Major Version
 	}
     
@@ -82,7 +82,7 @@ function check_version()
 		return array(
 			"error" => "0",
             "response" => "This Script Is Running (V" . $script_version["0"] . "." . $script_version["1"] . ") A Newer Minor Version Than The Official Release (V" . $data["version_major"] . "." . $data["version_minor"] . ").",
-			"version_status" => "1",
+			"version_status" => "0",
             "hash" => $data["hash"]); // Newer - Minor Version
 	}
     
@@ -750,10 +750,10 @@ function email_log($subject, $message, $system_log = FALSE)
 
 	$message = $message . $contents; // Stop lines being longer than 70 characters.
 
-
-	if ($mail = mail($config["backup_email"], $subject, $message, "From: " . $config["backup_email"] . "\r\n") == false)
+    $mail = mail($config["backup_email"], $subject, $message, "From: " . $config["backup_email"] . "\r\n");
+	if (!$mail)
 		return array("error" => "1", "response" =>
-				"Unable To Send Notification Email, The Following Error Occured While Trying To Send The Email (" . $mail . ").");
+				"Unable To Send Notification Email, An Error Occured While Trying To Send The Email Using PHP Internal Mail Function.");
 
 	return array("error" => "0", "response" => "");
 }
