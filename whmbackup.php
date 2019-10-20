@@ -98,10 +98,10 @@ if ($retrieve_status["error"] == "1"){
 			"\" has an error that required attention. The log of backup initiation is available below.\r\n", TRUE);
 	if ($email_log["error"] == "0")
 	{
-		record_log("note", "Log File Successfully Sent To " . $config["backup_email"]);
+		record_log("note", "Retrieve Status Log File Successfully Sent To " . $config["backup_email"]);
 	} else
 	{
-		record_log("note", $email_log["response"], true);
+		record_log("note", "Retrieve Status " . $email_log["response"], true);
 	}
     exit();
 }
@@ -125,10 +125,10 @@ try
 			"\" has an error that required attention. The log of backup initiation is available below.\r\n", TRUE);
             if ($email_log["error"] == "0")
             {
-                record_log("note", "Log File Successfully Sent To " . $config["backup_email"]);
+                record_log("note", "Invalid Authentication Log File Successfully Sent To " . $config["backup_email"]);
             } else
             {
-                record_log("note", $email_log["response"], true);
+                record_log("note", "Invalid Authentication " . $email_log["response"], true);
             }
             exit();
 		}
@@ -159,10 +159,10 @@ if ((($generate == true) && ($retrieve_status["status"] == "1") && ($force == tr
 			"\" has an error that required attention. The log of backup initiation is available below.\r\n");
 		if ($email_log["error"] == "0")
 		{
-			record_log("note", "Log File Successfully Sent To " . $config["backup_email"]);
+			record_log("note", "Generation Log File Successfully Sent To " . $config["backup_email"]);
 		} else
 		{
-			record_log("note", $email_log["response"], true);
+			record_log("note", "Generation " . $email_log["response"], true);
 		}
         exit();
     }
@@ -253,10 +253,10 @@ if (($generate == false) && ($retrieve_status["status"] == "2"))
 			"\" has been completed. The log of backup initiation is available below.\r\n");
 		if ($email_log["error"] == "0")
 		{
-			record_log("note", "Log File Successfully Sent To " . $config["backup_email"]);
+			record_log("note", "Backup Completion Log File Successfully Sent To " . $config["backup_email"]);
 		} else
 		{
-			record_log("note", $email_log["response"], true);
+			record_log("note", "Backup Completion " . $email_log["response"], true);
 		}
 	} else
 	{
@@ -273,10 +273,10 @@ catch (exception $e)
 			"\" has an error that required attention. The log of backup initiation is available below.\r\n", TRUE);
 	if ($email_log["error"] == "0")
 	{
-		record_log("note", "Log File Successfully Sent To " . $config["backup_email"]);
+		record_log("note", "cPanel API Error Log File Successfully Sent To " . $config["backup_email"]);
 	} else
 	{
-		record_log("note", $email_log["response"], true);
+		record_log("note", "cPanel API Error " . $email_log["response"], true);
 	}
     exit();
 }
