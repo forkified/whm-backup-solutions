@@ -748,7 +748,7 @@ function email_log($subject, $message, $system_log = FALSE)
 				$file_name . ".).");
 	fclose($handle); //close file
 
-	$message = $message . $contents; // Stop lines being longer than 70 characters.
+	$message = $message . $contents . "\n\nPlease note the 'Backup Initiated' status, only indicates that the cPanel server has responded with a positive confirmation of receiving the API request. The API request will add the account backup to a queue on the cPanel server. The actual backup starting time will vary based on the server configuration."; // Stop lines being longer than 70 characters.
 
     $mail = mail($config["backup_email"], $subject, $message, "From: " . $config["backup_email"] . "\r\n");
 	if (!$mail)
