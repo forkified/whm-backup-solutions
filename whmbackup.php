@@ -111,6 +111,7 @@ $log_file = $retrieve_status["log_file"];
 try
 {
 	$xmlapi = new xmlapi($config["whm_hostname"]);
+    $xmlapi->set_port($config["whm_port"]);
 	if ($config["whm_auth"] == "password")
 	{
 		$xmlapi->password_auth($config["whm_username"], $config["whm_auth_key"]);

@@ -752,6 +752,9 @@ class xmlapi
         curl_setopt($curl, CURLOPT_HTTPHEADER, $header);
 
         curl_setopt($curl, CURLOPT_POST, 1);
+        
+        curl_setopt($curl, CURLOPT_CONNECTTIMEOUT, 30);
+        curl_setopt($curl, CURLOPT_TIMEOUT, 30);
 
         $result = curl_exec($curl);
         if ($result == false) {

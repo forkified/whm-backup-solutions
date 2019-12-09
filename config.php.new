@@ -42,7 +42,7 @@ $config['check_version'] = '2';
 $config['whm_hostname'] = '';
 
 // $config['whm_port']
-// The cPanel login port value. Typically this is 2086 for Non-SSL and 2087 for SSL connections.
+// The WHM login port value. Typically this is 2086 for Non-SSL and 2087 for SSL connections.
 $config['whm_port'] = '';
 
 // $config['whm_username']
