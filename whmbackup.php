@@ -26,6 +26,10 @@
  * @link        https://whmbackup.solutions
  * @filename    whmbackup.php
  */
+
+@set_time_limit(180);
+@ini_set('max_execution_time', 180);
+
 $directory = realpath(__dir__ ) . DIRECTORY_SEPARATOR;
 
 // Include Functions file.
