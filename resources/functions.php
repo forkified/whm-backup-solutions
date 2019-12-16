@@ -327,7 +327,7 @@ function ftp_verification($remote_dir)
 
 	try
 	{
-		if (!($conn_id = @ftp_connect($config['backup_hostname'], $config['backup_port'], 5)))
+		if (!($conn_id = @ftp_connect($config['backup_hostname'], $config['backup_port'], 120)))
 			return array("error" => "1", "response" => "Unable To Connect To FTP Server (" . $config['backup_hostname'] .
 					":" . $config['backup_port'] . ").");
 
