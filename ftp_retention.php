@@ -89,7 +89,7 @@ $backups = array();
 try
 {
 	// Connect to FTP Server
-	if (!$conn_id = ftp_connect($config['backup_hostname'], $config['backup_port'], 20))
+	if (!$conn_id = ftp_connect($config['backup_hostname'], $config['backup_port'], 120))
 		record_log("system", "Unable to connect to FTP Server.", true);
 
 	// Login to FTP Server
