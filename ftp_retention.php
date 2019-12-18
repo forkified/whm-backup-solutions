@@ -26,6 +26,9 @@
  * @filename    ftp_retention.php
  */
 
+@set_time_limit(300);
+@ini_set('max_execution_time', 300);
+
 // Set Log File Name
 $log_file = "ftpretention-" . date("YmdHis", time()) . ".log";
 
