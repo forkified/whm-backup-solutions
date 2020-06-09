@@ -40,6 +40,17 @@ include ($directory . "resources" . DIRECTORY_SEPARATOR . "functions.php");
 
 $config_name = NULL;
 
+// Check if script run via command line or web browser.
+if ((PHP_SAPI == 'cli'))
+{
+	foreach ($argv as $arg)
+	{
+		list($arg_x, $arg_y) = explode('=', $arg);
+		$_GET[$arg_x] = $arg_y;
+	}
+
+}
+
 if (array_key_exists("config", $_GET))
 	$config_name = $_GET["config"];
 
