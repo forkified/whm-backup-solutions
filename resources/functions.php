@@ -27,7 +27,7 @@
  * @filename    functions.php
  */
 
-$version = "1.3";
+$version = "1.5";
 
 /**
  * @name        check_version
