@@ -252,13 +252,14 @@ function retrieve_status($config_name = null)
 			$status = 2; // Backup Complete
 		}
 
+        
 
 		$return = array(
 			"error" => "0",
 			"response" => "",
 			"status" => $status,
-			"account_list" => $status_contents["account_list"],
-			"log_file" => $status_contents["log_file"]);
+			"account_list" => @$status_contents["account_list"],
+			"log_file" => @$status_contents["log_file"]);
 	return $return;
 }
 
