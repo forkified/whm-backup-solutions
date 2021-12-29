@@ -578,8 +578,11 @@ function generate_account_list()
 		}
 		// Put Arrays In Descending Order
 		asort($accounts_to_backup);
+        $accounts_to_backup = array_values($accounts_to_backup);
 		asort($accounts_to_exclude);
+        $accounts_to_exclude = array_values($accounts_to_exclude);
 		asort($accounts_suspended);
+        $accounts_suspended = array_values($accounts_suspended);
 
 		return array(
 			"error" => "0",
