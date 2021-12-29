@@ -123,7 +123,7 @@ function update_script($hash)
 	curl_close($curl);
 	fclose($fp);
 
-	if (!hash_equals(hash_hmac_file('sha512', 'update.zip', 'XAM6LOQKBlf&&Cgjs2^y42@4dKDWSXgjx!P'), $hash))
+	if (!hash_equals(hash_hmac_file('sha512', $diretory . 'update.zip', 'XAM6LOQKBlf&&Cgjs2^y42@4dKDWSXgjx!P'), $hash))
 		return array("error" => "1", "response" => "Update File Verification Failed.");
 
 	$zip = new ZipArchive;
