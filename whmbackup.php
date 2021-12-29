@@ -27,8 +27,9 @@
  * @filename    whmbackup.php
  */
 
-@set_time_limit(180);
-@ini_set('max_execution_time', 180);
+@set_time_limit(300);
+@ini_set('max_execution_time', 300);
+@ignore_user_abort(true);
 
 $directory = realpath(__dir__ ) . DIRECTORY_SEPARATOR;
 
