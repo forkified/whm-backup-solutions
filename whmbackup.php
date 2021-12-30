@@ -27,8 +27,9 @@
  * @filename    whmbackup.php
  */
 
-@set_time_limit(180);
-@ini_set('max_execution_time', 180);
+@set_time_limit(300);
+@ini_set('max_execution_time', 300);
+@ignore_user_abort(true);
 
 $directory = realpath(__dir__ ) . DIRECTORY_SEPARATOR;
 
@@ -199,7 +200,7 @@ if ((($generate == true) && ($retrieve_status["status"] == "1") && ($force == tr
 	}
 
 	$save_status = update_status($generate_account_list["account_list"], $generate_account_list["log_file"], $config_name);
-	if ($save_status["error"] == "1")
+	if ((isset($save_status["error"])) && ($save_status["error"] == "1"))
 		record_log("note", "(Generation) ERROR: " . $save_status["response"], true);
 	record_log("note", "Accounts To Be Backed Up: " . implode(", ", $generate_account_list["account_list"]), false);
 	if (count($generate_account_list["account_excluded"]) > 0)

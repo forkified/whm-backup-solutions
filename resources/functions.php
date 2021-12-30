@@ -27,7 +27,7 @@
  * @filename    functions.php
  */
 
-$version = "1.5";
+$version = "1.6";
 
 /**
  * @name        check_version
@@ -123,7 +123,7 @@ function update_script($hash)
 	curl_close($curl);
 	fclose($fp);
 
-	if (!hash_equals(hash_hmac_file('sha512', 'update.zip', 'XAM6LOQKBlf&&Cgjs2^y42@4dKDWSXgjx!P'), $hash))
+	if (!hash_equals(hash_hmac_file('sha512', $diretory . 'update.zip', 'XAM6LOQKBlf&&Cgjs2^y42@4dKDWSXgjx!P'), $hash))
 		return array("error" => "1", "response" => "Update File Verification Failed.");
 
 	$zip = new ZipArchive;
@@ -252,13 +252,14 @@ function retrieve_status($config_name = null)
 			$status = 2; // Backup Complete
 		}
 
+        
 
 		$return = array(
 			"error" => "0",
 			"response" => "",
 			"status" => $status,
-			"account_list" => $status_contents["account_list"],
-			"log_file" => $status_contents["log_file"]);
+			"account_list" => @$status_contents["account_list"],
+			"log_file" => @$status_contents["log_file"]);
 	return $return;
 }
 
@@ -577,8 +578,11 @@ function generate_account_list()
 		}
 		// Put Arrays In Descending Order
 		asort($accounts_to_backup);
+        $accounts_to_backup = array_values($accounts_to_backup);
 		asort($accounts_to_exclude);
+        $accounts_to_exclude = array_values($accounts_to_exclude);
 		asort($accounts_suspended);
+        $accounts_suspended = array_values($accounts_suspended);
 
 		return array(
 			"error" => "0",
